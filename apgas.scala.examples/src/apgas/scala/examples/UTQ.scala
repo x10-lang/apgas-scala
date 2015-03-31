@@ -346,6 +346,8 @@ object UTQ {
         v
       }
     }
+    
+    assert(depth != 13 || count == 264459392)
 
     println("Depth: " + depth + ", Places: " + places.size
         + ", Power: " + Worker.power + ", Performance: " + count + "/"

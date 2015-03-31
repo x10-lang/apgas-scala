@@ -13,8 +13,8 @@ object HelloWorld {
     System.setProperty(Configuration.APGAS_JAVA, "java8")
     
     // PS: An alternate way would be to invoke 'scala' instead of Java.
-    System.setProperty("java.class.path", System.getProperty("java.class.path", "") + ":" +
-        "/home/psuter/software/scala/current/lib/scala-library.jar")
+    //System.setProperty("java.class.path", System.getProperty("java.class.path", "") + ":" +
+    //    "/home/psuter/software/scala/current/lib/scala-library.jar")
       
     apgas {
       finish {

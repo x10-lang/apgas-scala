@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+rubber --force --pdf paper
+rubber --force --pdf paper

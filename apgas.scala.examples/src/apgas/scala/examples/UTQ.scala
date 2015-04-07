@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object UTQ {
   class Bag(val hash : Array[Byte], val depth : Array[Int], val lower : Array[Int], val upper : Array[Int], var size : Int) {
     def this(n : Int) = this(
-        hash = new Array[Byte](n * 20),
+        hash = new Array[Byte](n * 20 + 4),
         depth = new Array[Int](n),
         lower = new Array[Int](n),
         upper = new Array[Int](n),
@@ -55,13 +55,13 @@ object UTQ {
   }
   
   object Worker {
-    val power : Int = 0
+    val power : Int = 1
     
     val uts : Array[Worker] = Array.tabulate[Worker](1 << power) { id =>
       new Worker(id + (here.id << power))
     }
      
-    lazy val encoder : MessageDigest = MessageDigest.getInstance("SHA-1")
+    def encoder : MessageDigest = MessageDigest.getInstance("SHA-1")
   }
 
   class Worker(val location : Int) {
@@ -245,14 +245,12 @@ object UTQ {
       run()
     }
 
-    def deal(victim : Int, b : Bag) : Unit = synchronized {
+    def deal(victim : Int, b : Option[Bag]) : Unit = synchronized {
       if (state != victim) {
         return
       }
       
-      if (b != null) {
-        bag.merge(b)
-      }
+      b.foreach(b0 => bag.merge(b0))
       
       state = -1;
       notifyAll()
@@ -275,14 +273,13 @@ object UTQ {
       
       while ({ thief = thieves.poll(); thief != null}) {
         val b = bag.split();
-        if (b.isDefined) {
-          // FIXME what's going on here? is it always defined?
         
         val victim : Int = location
         val id : Int = thief & ((1 << Worker.power) - 1)
+        
         uncountedAsyncAt(place(thief >> Worker.power)) {
-          Worker.uts(id).deal(victim, b.get)
-        }}
+          Worker.uts(id).deal(victim, b)
+        }
       }
     }
 

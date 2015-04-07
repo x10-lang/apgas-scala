@@ -6,5 +6,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.impl"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.scala"/>
+	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-actor_2.11-2.3.9.jar"/>
+	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/config-1.2.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/apgas.examples"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

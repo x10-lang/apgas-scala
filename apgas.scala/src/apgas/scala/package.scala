@@ -3,7 +3,7 @@ package apgas
 import _root_.scala.collection.JavaConverters._
 
 package object scala {
-  trait APGASSerialization[T] {
+  trait APGASSerialization[T] extends Serializable {
     type S <: java.io.Serializable
     def toSerializable(x : T) : S
     def fromSerializable(x : S) : T

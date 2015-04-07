@@ -39,16 +39,16 @@ object StealingActors {
     
     val system = ActorSystem("uts-system")
     
-    val numWorkers : Int = 2
+    val numWorkers : Int = 1
     
     implicit val dispatcher = system.dispatcher
     
-    {
-      println("Warmup...")
-      val master = system.actorOf(Props(new Master(numWorkers)), name = "master-warmup")
-      Await.result(master ? Compute(seed, (depth - 2) max 5), 1 hour)
-      master ! Kill
-    }
+//    {
+//      println("Warmup...")
+//      val master = system.actorOf(Props(new Master(numWorkers)), name = "master-warmup")
+//      Await.result(master ? Compute(seed, (depth - 2) max 5), 1 hour)
+//      master ! Kill
+//    }
     
     {
       println("Working...")

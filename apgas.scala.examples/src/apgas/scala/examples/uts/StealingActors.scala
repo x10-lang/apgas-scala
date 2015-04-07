@@ -11,21 +11,20 @@ import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 
 object StealingActors {
-  case class InitWorkers(workers : Vector[ActorRef])
-  case class LifelineDeal(work : Bag)
+  // Inter-worker protocol
   case class Steal(thief : ActorRef)
   case class Deal(work : Bag)
   case object NoDeal
-  case class LifelineReq(actor : ActorRef)  
   case object Work
+  case class LifelineReq(actor : ActorRef)
+  case class LifelineDeal(work : Bag)
   
-  case class LocalTermination(inc : Int)
+  // Global init-termination.
+  case class Compute(seed : Int, depth : Int)
+  case class InitWorkers(workers : Vector[ActorRef])
+  case class LocalTermination(workerID : Int, requested : Int, dealt : Int)
   case object RequestCount
   case class Count(count : Long)
-  
-  case class Compute(seed : Int, depth : Int)
-  
-  //val counter = new java.util.concurrent.atomic.AtomicInteger(0)
   
   def main(args : Array[String]) : Unit = {
     implicit val timeout : Timeout = Timeout(1 hour)
@@ -39,7 +38,7 @@ object StealingActors {
     
     val system = ActorSystem("uts-system")
     
-    val numWorkers : Int = 1
+    val numWorkers : Int = 2
     
     implicit val dispatcher = system.dispatcher
     
@@ -85,26 +84,43 @@ object StealingActors {
     var counts : List[Long] = Nil
     var masterWork : Option[Bag] = None
     
-    var delta : Int = 0
-      
+    val dealtCounts = Array.fill[Int](numWorkers)(0)
+    val requestedCounts = Array.fill[Int](numWorkers)(0)
+    
     override def receive = {
       case Compute(s, d) =>
         asker = Some(sender)
+        counts = Nil
+        
+        for(i <- 0 until numWorkers) {
+          dealtCounts(i) = 0
+          requestedCounts(i) = 0
+        }
+        
         val b = new Bag()
         masterWork = Some(b)
         b.initialize(MessageDigest.getInstance("SHA-1"), s, d)
         
-        //log.info("DELTA : " + delta)
-        delta = 1
-        //log.info("DELTA : " + delta)
+        dealtCounts(numWorkers - 1) = 1
         workers(0) ! LifelineDeal(b)
         
-      case l @ LocalTermination(inc) =>
-        delta += inc
+      case l @ LocalTermination(workerID, requested, dealt) =>
+        requestedCounts(workerID) += requested
+        dealtCounts(workerID)     += dealt
         
-        //log.info("" + l + " " + delta)
+//        println(l)
+//        println(requestedCounts.toList)
+//        println(dealtCounts.toList)
         
-        if(delta == 0) {
+        var finished = true
+        for(i <- 0 until numWorkers if finished) {
+          if(requestedCounts(i) != dealtCounts((i + 1) % numWorkers)) {
+            //println(s"Worker $i has requested ${requestedCounts(i)}x and been dealt ${dealtCounts((i+1) % numWorkers)}x. No termination.")
+            finished = false
+          }
+        }
+        
+        if(finished) {
           workers.foreach(_ ! RequestCount)
         }
       
@@ -133,12 +149,17 @@ object StealingActors {
     var thieves : List[ActorRef] = Nil
     
     var lifeline : Option[ActorRef] = None
+    
+    var dealtCount : Int = 0
+    var requestedCount : Int = 0
         
     override def receive = {
-      case InitWorkers(ws) =>
+      case InitWorkers(ws) =>     
         workers = ws
-        if(id > 0) {
-          workers((workers.size + id - 1) % workers.size) ! LifelineReq(self)
+        if(id < workers.size - 1) {
+          lifeline = Some(ws((workers.size + id - 1) % workers.size))
+        } else {
+          lifeline = None
         }
         become(idle)
     }
@@ -157,7 +178,6 @@ object StealingActors {
         lifeline = Some(l)
         
       case RequestCount =>
-        //log.info("RequestCount received. Size of work here: " + work.getSize())
         sender ! Count(work.counted)
     }
     
@@ -171,13 +191,11 @@ object StealingActors {
         }
         
         if(work.size == 0) {
-          // Notify stealers that work is unavailable here.
           for(t <- thieves) {
             t ! NoDeal
           }
           thieves = Nil
           
-          // Go steal some work.
           val victim = if(workers.size > 1) {
             workers({
               val r = Random.nextInt(workers.size - 1)
@@ -190,18 +208,16 @@ object StealingActors {
           victim ! Steal(self)
           become(waiting)
         } else {
-          // Send work to the lifeline first if we can.
           for(l <- lifeline) {
             for(w <- work.split()) {
-              master ! LocalTermination(1)
+              dealtCount += 1
               l ! LifelineDeal(w)
               lifeline = None
             }
           }
           
           for(t <- thieves) {
-            val msg = work.split().map(w => Deal(w)).getOrElse(NoDeal)
-            //val msg = w.map(Deal(_)).getOrElse(NoDeal)
+            val msg = work.split().map(Deal(_)).getOrElse(NoDeal)
             t ! msg
           }
           thieves = Nil
@@ -220,17 +236,17 @@ object StealingActors {
     // State in which actor has attempted to steal and is expecting an answer.
     def waiting : Receive = {
       case Deal(w) =>
-        //val osz = work.size
-        //val nsz = w.size
         work.merge(w)
-        //log.info(s"Received regular deal. Size was s=$osz, added s=$nsz")
         become(working)
         self ! Work
         
       case NoDeal =>
         val next = workers((workers.size + id - 1) % workers.size)
+        requestedCount += 1
         next ! LifelineReq(self)
-        master ! LocalTermination(-1)
+        master ! LocalTermination(id, requestedCount, dealtCount)
+        requestedCount = 0
+        dealtCount = 0
         become(idle)
         
       case Steal(t) =>

@@ -2,6 +2,7 @@ package apgas.scala.examples
 
 import apgas.Configuration
 
+import apgas.scala.util._
 import apgas.scala._
 
 import java.util.Random
@@ -33,15 +34,15 @@ object KMeans {
       System.setProperty(Configuration.APGAS_PLACES, "2")
     }
      
-    val globalClusterState = GlobalRef.forPlaces[ClusterState](places) {
+    val globalClusterState = PlaceLocalRef.forPlaces[ClusterState](places) {
       new ClusterState()
     }
            
-    val globalCurrentClusters = GlobalRef.forPlaces[Array[Array[Float]]](places) {
+    val globalCurrentClusters = PlaceLocalRef.forPlaces[Array[Array[Float]]](places) {
       Array.ofDim[Float](CLUSTERS, DIM)
     }
       
-    val globalPoints = GlobalRef.forPlaces(places) {
+    val globalPoints = PlaceLocalRef.forPlaces(places) {
       val rand = new Random(here.id)
       Array.fill[Float](numPoints / places.size, DIM) {
         rand.nextFloat()
@@ -112,21 +113,18 @@ object KMeans {
               clusterState
             }
 
-            // FIXME !
-            // (maybe use java.util.concurrent.atomic.AtomicIntegerArray?
-            
-            // combine place clusters to central
-            // final atomic {
-            for (i <- 0 until CLUSTERS) {
-              for (j <- 0 until DIM) {
-                centralNewClusters(i)(j) += placeClusters.clusters(i)(j)
+            // Combine place clusters to central
+            synchronized {
+              for (i <- 0 until CLUSTERS) {
+                for (j <- 0 until DIM) {
+                  centralNewClusters(i)(j) += placeClusters.clusters(i)(j)
+                }
+              }
+                        
+              for (j <- 0 until CLUSTERS) {
+                centralClusterCounts(j) += placeClusters.clusterCounts(j)
               }
             }
-            
-            for (j <- 0 until CLUSTERS) {
-              centralClusterCounts(j) += placeClusters.clusterCounts(j)
-            }
-            // }
           }
         }
       }

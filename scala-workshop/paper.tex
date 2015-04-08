@@ -1,13 +1,13 @@
 \documentclass[preprint,10pt]{sigplanconf}
 
-% The following \documentclass options may be useful:
-
-% preprint      Remove this option only once the paper is in final form.
-% 10pt          To set in 10-point type instead of 9-point.
-% 11pt          To set in 11-point type instead of 9-point.
-% authoryear    To obtain author/year citation style instead of numeric.
-
 \usepackage{amsmath}
+
+\usepackage{xspace}
+
+\usepackage{listings}
+\input{scalalistings}
+
+\usepackage{defs}
 
 \begin{document}
 
@@ -26,7 +26,7 @@
 %\exclusivelicense                % ACM gets exclusive license to publish, 
                                   % you retain copyright
 
-%\permissiontopublish             % ACM gets nonexclusive license to publish
+\permissiontopublish             % ACM gets nonexclusive license to publish
                                   % (paid open-access papers, 
                                   % short abstracts)
 
@@ -56,6 +56,9 @@
 % keyword1, keyword2
 
 \input{introduction}
+\input{kmeans}
+\input{uts}
+\input{conclusion}
 
 %\acks
 %

@@ -1,8 +1,8 @@
 \section{Introduction}
 
-Hello \cite{TardieuETAL14X10ApgasAtPetascale}.
+\subsection{An Overview of the \apgas Programming Model}
+% \cite{TardieuETAL14X10ApgasAtPetascale}.
 
-\subsection{An Overview of the APGAS Programming Model}
 History
 X10
 Common patterns
@@ -11,7 +11,7 @@ Common patterns
 
 Terminology: places, tasks.
 
-Discuss future \{ \} vs async \{ \} (returning void means no value).
+Discuss future vs.\ async (returning void means no value).
 
 finish counts (including distributed tasks!) and has no real equivalent.
 
@@ -25,6 +25,13 @@ UTS APGAS: concurrency control implemented as multiple paradigms (synchronized
 data access, global invariants, active messages). Concurrency is more
 fine-grained.
 
+\begin{lstlisting}
+for(p $\lA$ places) {
+  asyncAt(p) {
+    println("Hello from " $\PL$ here)
+  }
+}
+\end{lstlisting}
 
 \subsection{Illustrative Example: UTS}
 
@@ -35,3 +42,6 @@ Concurrent work-stealing.
 Distributed?
 
 Resilient?
+
+In the following sections, we highlight some of the points above through two
+benchmarks, \kmeans clustering and unbalanced tree search.

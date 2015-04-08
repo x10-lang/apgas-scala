@@ -15,6 +15,12 @@ package object scala {
     override def fromSerializable(x : S) = x
   }
   
+  implicit val intHasAPGASSerialization = new APGASSerialization[Int]() {
+    override type S = java.lang.Integer
+    override def toSerializable(x : Int) = new java.lang.Integer(x)
+    override def fromSerializable(x : java.lang.Integer) : Int = x
+  }
+  
   implicit val longHasAPGASSerialization = new APGASSerialization[Long]() {
     override type S = java.lang.Long
     override def toSerializable(x : Long) = new java.lang.Long(x)

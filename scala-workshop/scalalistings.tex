@@ -1,0 +1,45 @@
+%% To import in the preambule
+%\usepackage{listings}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  alsoletter={@,=,>},
+  morekeywords={abstract, case, catch, class, def, do, else, extends, false, final, finally, for, foreach, if, implicit, import, match, new, null, object, 
+override, package, private, protected, requires, return, sealed, super, this, throw, trait, try, true, type, val, var, while, with, yield, domain, 
+postcondition, precondition,invariant, constraint, assert, forAll, in, _, return, @generator, ensure, require, holds, ensuring},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]"
+}
+
+\newcommand{\codestyle}{\small\sffamily}
+
+\newcommand{\SAND}{\mbox{\tt \&\&}\xspace}
+\newcommand{\SOR}{\mbox{\tt ||}\xspace}
+\newcommand{\MOD}{\mbox{\tt \%}\xspace}
+\newcommand{\DIV}{\mbox{\tt /}\xspace}
+\newcommand{\PP}{\mbox{\tt ++}\xspace}
+\newcommand{\PL}{\mbox{\tt +}\xspace}
+\newcommand{\MM}{\mbox{\tt {-}{-}}\xspace}
+\newcommand{\RA}{\Rightarrow}
+\newcommand{\EQ}{\mbox{\tt ==}}
+\newcommand{\NEQ}{\mbox{\tt !=}}
+\newcommand{\SLE}{\ensuremath{\leq}}
+\newcommand{\SGE}{\ensuremath{\geq}}
+\newcommand{\SGT}{\mbox{\tt >}}
+\newcommand{\SLT}{\mbox{\tt <}}
+\newcommand{\rA}{\rightarrow}
+\newcommand{\lA}{\leftarrow}
+
+% Default settings for code listings
+\lstset{
+  language=scala,
+  showstringspaces=false,
+  columns=fullflexible,
+  mathescape=true,
+  numbers=none,
+  numberstyle=\tiny,
+  basicstyle=\codestyle
+} 
+

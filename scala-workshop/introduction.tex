@@ -72,9 +72,9 @@ Memory: PlaceLocal, PlaceLocalRef
 
 Place failure.
 
-\subsection{Contrasting \apgas, Futures, Actors}
+\subsection{Similarities and Differences with Futures and Actors}
 
-Discuss future vs.\ async (returning void means no value).
+Discuss future vs.\ async (returning void means no value). Future can be awaited anywhere, but must be awaited ``manually''.
 
 finish counts (including distributed tasks!) and has no real equivalent.
 
@@ -84,24 +84,9 @@ Handling failures: Try vs Exception vs. Messages
 
 Async at: active messages: get executed "immediately", actor messages handled one-by-one.
 
-UTS \apgas: concurrency control implemented as multiple paradigms (synchronized
-data access, global invariants, active messages). Concurrency is more
-fine-grained.
-
-
-\subsection{Illustrative Example: UTS}
-
-Problem definition.
-
-Concurrent work-stealing.
-
-Distributed?
-
-Resilient?
-
 In the following sections, we highlight some of the points above through two
 benchmarks, \kmeans clustering and unbalanced tree search.
 
-% \input{patterns}
 
-Figure~\ref{fig:apgas-patterns} shows patterns.
+% \input{patterns}
+% Figure~\ref{fig:apgas-patterns} shows patterns.

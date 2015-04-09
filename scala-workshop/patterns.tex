@@ -1,0 +1,55 @@
+\newsavebox\patternRemoteEval
+\begin{lrbox}{\patternRemoteEval}
+\begin{lstlisting}
+v = at(p) {
+  evalThere(arg1, arg2)
+}
+\end{lstlisting}
+\end{lrbox}
+
+\newsavebox\patternActiveMessage
+\begin{lrbox}{\patternActiveMessage}
+\begin{lstlisting}
+asyncAt(p) {
+  runThere(arg1, arg2)
+}
+\end{lstlisting}
+\end{lrbox}
+
+\newsavebox\patternRecursiveParallelDecomposition
+\begin{lrbox}{\patternRecursiveParallelDecomposition}
+\begin{lstlisting}
+def fib(n : Long) : Long = {
+  if(n < 2) n else {
+    var f1, f2 = 0L
+    finish {
+      async { f1 = fib(n - 1) }
+      f2 = fib(n - 2)
+    }
+    f1 + f2
+  }
+}
+\end{lstlisting}
+\end{lrbox}
+
+\newsavebox\patternSPMD
+\begin{lrbox}{\patternSPMD}
+\begin{lstlisting}
+finish {
+  for(p $\lA$ places) {
+    at(p) {
+      async { runEverywhere(arg1, arg2) }
+    }
+  }
+}
+\end{lstlisting}
+\end{lrbox}
+
+\begin{figure*}
+\centering
+\subfloat{\usebox\patternRemoteEval}\qquad
+\subfloat{\usebox\patternActiveMessage}\qquad
+\subfloat{\usebox\patternRecursiveParallelDecomposition}\qquad
+\subfloat{\usebox\patternSPMD}\qquad
+\caption{Common \apgas patterns in Scala.\label{fig:apgas-patterns}}
+\end{figure*}

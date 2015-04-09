@@ -1,9 +1,22 @@
 \section{Introduction}
 
-\apgas is an extension of PGAS. Implemented as the foundation of the X10
-programming language. X10 has a JVM and native backend. X10, and by extension
-\apgas, has been used successfully to run parallel and distributed applications
-on tens of thousands of cores \cite{TardieuETAL14X10ApgasAtPetascale}.
+The APGAS programming model~\cite{amp10}---Asynchronous Partitioned Global Address Space---is simple but powerful
+model of concurrency and distribution. It combines PGAS with asynchrony.
+In (A)PGAS the computation and data in an application are logically partitioned into places.
+In APGAS the computation is further organized into lightweight asynchronous tasks.
+With these, APGAS can express both
+regular and irregular parallelism, message-passing-style and
+active-message-style computations, fork-join and bulk-synchronous
+parallelism.  In contrast to hybrid models like MPI+OpenMP, the same
+constructs underpin both intra- and inter-place concurrency.
+
+The X10 programming language~\cite{oopsla05} augments a familiar imperative, strongly-typed, garbage-collected, object-oriented language with the APGAS model. X10 is implemented with two backends. On the managed backend, X10
+compiles into Java and runs on a cluster of JVMs. On the native backend, X10 compiles into C++ and generates a native binary
+for execution on scale-out systems.
+X10, and by extension
+\apgas, has been used successfully to implement distributed applications
+running across tens of thousands of cores~\cite{TardieuETAL14X10ApgasAtPetascale}.
+
 
 Current state requires programmers interested in the \apgas model to buy in the
 X10 language and development platform, which may not be possible for an array
@@ -25,9 +38,21 @@ almost exactly like X10 programs.
 
 \subsection{Overview of the \apgas Programming Model}
 
-Terminology: places, tasks.
+A {\em place} is an abstraction of mutable, shared-memory region and worker threads operating on this memory.
+A single application typically runs over a collection of places. In this work, each place is implemented as a separate JVM.
 
-Memory model.
+A {\em task} is an abstraction of a sequence of computations. In this work, each task is specified as a no-arg, unit-type lambda.
+Each task is bound to a particular place and can only accesses the memory at this place. 
+A task can spawn local and remote tasks, i.e., tasks in the same place or elsewhere.
+
+A remote task executes on a snapshot of the parent task's heap captured when the task is spawned.
+A task can construct \emph{global references} to objects in its heap to work around the capture semantics.
+Global references are copied as part of the snapshot but not the target objects. A global reference can only be dereferenced
+at the place of the target object where it resolves to the original object. 
+
+A task can wait for the termination of all the tasks transitively spawned from it.
+Thanks to global references, remote tasks, and termination control,
+a task can indirectly access and update remote objects.
 
 The three fundamental control structures in programming model are
 \lstinline{async}, \lstinline{at}, and \lstinline{finish}, whose signatures in

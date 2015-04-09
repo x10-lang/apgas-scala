@@ -1,15 +1,78 @@
 \section{Introduction}
 
-\subsection{An Overview of the \apgas Programming Model}
-% \cite{TardieuETAL14X10ApgasAtPetascale}.
+\apgas is an extension of PGAS. Implemented as the foundation of the X10
+programming language. X10 has a JVM and native backend. X10, and by extension
+\apgas, has been used successfully to run parallel and distributed applications
+on tens of thousands of cores \cite{TardieuETAL14X10ApgasAtPetascale}.
 
-History
-X10
-Common patterns
+Current state requires programmers interested in the \apgas model to buy in the
+X10 language and development platform, which may not be possible for an array
+of reasons.
 
-\subsection{Contrasting APGAS, Futures, Actors}
+To expose more programmers, we believe in the approach of exposing the critical
+components of \apgas as a library. Particularly suitable for Scala, a language
+that is welcoming of library-based extensions, and that has been a pioneer on
+the JVM for alternative concurrency paradigms. Notably, the original actor
+library and its more recent successor Akka are examples of both. Our work is
+based on a recent implementation of \apgas in Java \cite{APGASJava}, reworked to
+fit Scala idioms.
+
+We hope that people will embrace \apgas, either as a substitute for or as a
+complement to other concurrency libraries. Examples throughout the paper are
+verbatim Scala/\apgas code. X10 shares ancestry/inspiration with Scala, and the
+facilities in Scala for library-defined language extensions makes the code look
+almost exactly like X10 programs.
+
+\subsection{Overview of the \apgas Programming Model}
 
 Terminology: places, tasks.
+
+Memory model.
+
+The three fundamental control structures in programming model are
+\lstinline{async}, \lstinline{at}, and \lstinline{finish}, whose signatures in
+the Scala implementation are:
+\begin{lstlisting}
+  def async(body: $\RA$Unit) : Unit
+  def at[T:Serialization](place: Place)(body: $\RA$T) : T
+  def finish(body : $\RA$Unit) : Unit
+\end{lstlisting}
+As is common in Scala libraries, we use by-name arguments to capture blocks.
+We discuss the \lstinline{Serialization} type class in
+Section~\ref{sec:serialization}.
+
+The \lstinline{async} construct spawns an asynchronous task and returns
+immediately. It is therefore the primitive construct for \emph{concurrency}.
+
+The primitive construct for \emph{distribution} is \lstinline{at}. The invocation
+\begin{lstlisting}
+  val r = at(p) { work() }
+\end{lstlisting}
+executes the method \lstinline{work} at place \lstinline{p}, and blocks until
+it terminates and returns the result. Asynchronously spawning tasks at remote places can be achieved by composing the two constructs:
+\begin{lstlisting}
+  at(p) { async { work() }}
+\end{lstlisting}
+This operation is so common that we have an semantically equivalent but optimized version with the signature
+\begin{lstlisting}
+  def asyncAt(place: Place)(body: $\RA$Unit) : Unit
+\end{lstlisting}
+
+Finally, \lstinline{finish} detects termination: an invocation of
+\lstinline{finish} will execute its body and block until all nested invocations
+of \lstinline{async} have completed. The set of \lstinline{async} invocations
+that are controlled includes all recursive invocations, including all remote
+ones. This makes \lstinline{finish} a powerful contribution of \apgas.
+
+Fibonacci
+
+SPDM
+
+Memory: PlaceLocal, PlaceLocalRef
+
+Place failure.
+
+\subsection{Contrasting \apgas, Futures, Actors}
 
 Discuss future vs.\ async (returning void means no value).
 
@@ -21,17 +84,10 @@ Handling failures: Try vs Exception vs. Messages
 
 Async at: active messages: get executed "immediately", actor messages handled one-by-one.
 
-UTS APGAS: concurrency control implemented as multiple paradigms (synchronized
+UTS \apgas: concurrency control implemented as multiple paradigms (synchronized
 data access, global invariants, active messages). Concurrency is more
 fine-grained.
 
-\begin{lstlisting}
-for(p $\lA$ places) {
-  asyncAt(p) {
-    println("Hello from " $\PL$ here)
-  }
-}
-\end{lstlisting}
 
 \subsection{Illustrative Example: UTS}
 
@@ -45,3 +101,7 @@ Resilient?
 
 In the following sections, we highlight some of the points above through two
 benchmarks, \kmeans clustering and unbalanced tree search.
+
+% \input{patterns}
+
+Figure~\ref{fig:apgas-patterns} shows patterns.

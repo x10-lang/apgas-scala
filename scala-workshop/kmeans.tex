@@ -1,0 +1,13 @@
+\section{Distributed \kmeans Clustering}
+
+Problem definition. Why it's ``easy'' to distribute.
+
+Contrast with actors: messaging and communication is implicit vs. explicit.
+
+Shared memory is not idiomatic in Akka, whereas embraced in APGAS. Ex: updating
+the central array. This means we end up with code that requires concurrency
+control.
+
+Here we just used \lstinline{synchronized}. If Java had a proper
+implementation or arrays with atomic increments for floats (analogous to
+\lstinline{AtomicIntegerArray}), we could also just use that.

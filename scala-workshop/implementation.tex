@@ -1,0 +1,12 @@
+\section{Selected Implementation Details}
+\label{sec:serialization}
+
+\paragraph{Distribution and Failure Detection.}
+Hazelcast.
+
+\paragraph{Serialization.}
+Use of type class, mostly to support primitive types and
+\lstinline{java.io.Serializable} together. In principle, paves the way for
+relying on pickling \cite{MillerETAL13InstantPicklesGeneratingObjectorientedPicklerCombinators} in future work.
+
+\paragraph{Closures and capture.} Currently not checking. Ideal use case for spores \cite{MillerHallerOdersky14SporesTypebasedFoundationClosuresAgeConcurrency}.

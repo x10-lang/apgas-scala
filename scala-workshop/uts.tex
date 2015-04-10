@@ -53,6 +53,13 @@ Figure~\ref{fig:uts-state} shows these states and the possible transitions as a 
 \caption{State diagram for UTS workers.\label{fig:uts-state}}
 \end{figure}
 
+\paragraph{Distributed Termination.} Distributed termination detection is notoriously difficult to implement correctly and efficiently.
+For instance in UTS, observing that all workers are idle does not guarantee that the traversal is complete as messages containing nodes to process might still be in flight. Thanks to \lstinline{finish}, an entire class of hard-to-reproduce data races is ruled out by construction in APGAS.
+A combination of static and dynamic analyses can bring down the cost of termination detection~\cite{TardieuETAL14X10ApgasAtPetascale}. 
+
+APGAS provides two state-of-the-art \lstinline{finish} implementations for fault-tolerant and non-fault-tolerant instantiations of the library. The core algorithm uses a distributed array of counters akin to the X10 implementation. Each place maintains the count of tasks that completed locally and separate counts for each place where it spawned tasks. These arrays of counters are pushed to the place of the task waiting on the \lstinline{finish}. Termination is signaled when all the sums of the per-place task counts are zero.
+
+
 TODO
 
 Common implementation of WorkList. Show interface. Explain mutability and

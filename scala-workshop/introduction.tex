@@ -1,6 +1,6 @@
 \section{Introduction}
 
-The APGAS programming model~\cite{amp10}---Asynchronous Partitioned Global Address Space---is simple but powerful
+The APGAS programming model~\cite{amp10}---Asynchronous Partitioned Global Address Space---is a simple but powerful
 model of concurrency and distribution. It combines PGAS with asynchrony.
 In (A)PGAS the computation and data in an application are logically partitioned into places.
 In APGAS the computation is further organized into lightweight asynchronous tasks.
@@ -13,11 +13,10 @@ constructs underpin both intra- and inter-place concurrency.
 The X10 programming language~\cite{oopsla05} augments a familiar imperative, strongly-typed, garbage-collected, object-oriented language with the APGAS model. X10 is implemented with two backends. On the managed backend, X10
 compiles into Java and runs on a cluster of JVMs. On the native backend, X10 compiles into C++ and generates a native binary
 for execution on scale-out systems.
-X10, and by extension
-\apgas, has been used successfully to implement distributed applications
+X10 and by extension
+\apgas have been used successfully to implement distributed applications
 running across tens of thousands of cores~\cite{TardieuETAL14X10ApgasAtPetascale}.
-The recently developed APGAS library for Java \cite{APGASJava} provides an alternative to X10 for programmers interested in the \apgas model but not willing to buy into a new programming language or development platform, which may not be possible for an array
-of reasons.
+The recently developed APGAS library for Java \cite{APGASJava} provides an alternative to X10 for programmers interested in the \apgas model but not willing to buy into a new programming language or development platform, which is not always possible or desirable.
 
 To expose more programmer to APGAS, we propose to realize APGAS an as embedded domain-specific language for Scala. 
 Scala welcomes library-based extensions and has been a pioneer on
@@ -27,11 +26,11 @@ X10 shares ancestry and inspiration with Scala, and the
 facilities in Scala for library-defined language extensions make the code look
 almost exactly like X10 programs.
 
-Section~\ref{sec:apgas} describes the APGAS programming model and its embedding in Scala. We demonstrate two examples programs: \kmeans in Section~\ref{sec:kmeans} and Unbalanced Tree Search in Section~\ref{sec:uts}. Section~\ref{sec:serialization} discusses implementation and Section~\ref{sec:conclusion} concludes the paper.
+Section~\ref{sec:apgas} describes the APGAS programming model and its embedding in Scala. We demonstrate two examples programs: \kmeans in Section~\ref{sec:kmeans} and Unbalanced Tree Search in Section~\ref{sec:uts}. Section~\ref{sec:serialization} discusses select implementation details and Section~\ref{sec:conclusion} concludes the paper.
 
-We hope that people will embrace \apgas, either as a substitute for or as a
-complement to other concurrency libraries. Examples throughout the paper are
-verbatim Scala \apgas code. 
+% We hope that people will embrace \apgas, either as a substitute for or as a
+% complement to other concurrency libraries. Examples throughout the paper are
+% verbatim Scala \apgas code. 
 
 
 \section{Overview of \apgas in Scala}

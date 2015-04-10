@@ -26,5 +26,18 @@ object HelloPatterns {
     
     println(v)
     
+    def fib(i : Int) : Long = if(i <= 1) i else {
+      var a, b : Long = 0L
+      
+      finish {
+        async {
+          a = fib(i - 2)
+        }
+        b = fib(i - 1)
+      }
+      a + b
+    }
+    
+    println(fib(10))
   }
 }

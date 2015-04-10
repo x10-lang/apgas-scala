@@ -7,12 +7,12 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.impl"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.scala"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-actor_2.11-2.3.9.jar"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/config-1.2.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.examples"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-cluster_2.11-2.3.9.jar"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-remote_2.11-2.3.9.jar"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/protobuf-java-2.5.0.jar"/>
-	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/netty-3.8.0.Final.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/akka-actor_2.11-2.3.9.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/akka-cluster_2.11-2.3.9.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/akka-remote_2.11-2.3.9.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/config-1.2.1.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/netty-3.8.0.Final.jar"/>
+	<classpathentry kind="var" path="AKKA_HOME/lib/akka/protobuf-java-2.5.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

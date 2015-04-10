@@ -11,7 +11,6 @@ import _root_.scala.util.Random
 import apgas.Configuration
 import apgas.Place
 import apgas.scala.util._
-import apgas.Job
 import apgas.scala._
 
 object UTSAPGAS {
@@ -62,7 +61,7 @@ object UTSAPGAS {
     }
   }
   
-  final class Worker extends PlaceLocal with Job {
+  final class Worker extends PlaceLocal {
     val home       = here
     val placeCount = places.size
     val random     = new java.util.Random()
@@ -78,7 +77,7 @@ object UTSAPGAS {
       bag.initialize(md, s, d)
     }
 
-    override def run() : Unit = {
+    def run() : Unit = {
       synchronized {
         state = -1
       }
@@ -155,15 +154,8 @@ object UTSAPGAS {
       run()
     }
     
-    def deal(p : Place, b : Option[Bag]) : Unit = synchronized {
-      if (state != p.id) {
-        // FIXME how can this happen?
-        // thief is no longer waiting for this message, discard
-        return
-      }
-    
+    def deal(p : Place, b : Option[Bag]) : Unit = synchronized {  
       b.foreach(bag.merge(_))
-    
       state = -1
       notifyAll()
     }
@@ -175,9 +167,7 @@ object UTSAPGAS {
         for(b <- bag.split()) {
           p = place((home.id + 1) % placeCount)
           lifeline.set(false)
-                  
-          //transfer(p, b)
-          
+
           asyncAt(p) {
             lifelinedeal(b)
           }

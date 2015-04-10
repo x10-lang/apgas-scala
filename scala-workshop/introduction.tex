@@ -17,25 +17,20 @@ X10, and by extension
 \apgas, has been used successfully to implement distributed applications
 running across tens of thousands of cores~\cite{TardieuETAL14X10ApgasAtPetascale}.
 
-TODO
-
-Current state requires programmers interested in the \apgas model to buy in the
-X10 language and development platform, which may not be possible for an array
+The new APGAS library for Java \cite{APGASJava} provides an alternative to X10 for programmers interested in the \apgas model but not willing to buy into a new programming language or development platform, which may not be possible for an array
 of reasons.
 
-To expose more programmers, we believe in the approach of exposing the critical
-components of \apgas as a library. Particularly suitable for Scala, a language
-that is welcoming of library-based extensions, and that has been a pioneer on
+To expose more programmer to APGAS and further improve their experience with APGAS, we propose to realize APGAS an as embedded domain-specific language for Scala. 
+Scala welcomes library-based extensions and that has been a pioneer on
 the JVM for alternative concurrency paradigms. Notably, the original actor
-library and its more recent successor Akka are examples of both. Our work is
-based on a recent implementation of \apgas in Java \cite{APGASJava}, reworked to
-fit Scala idioms.
+library and its more recent successor Akka are examples of both. 
+X10 shares ancestry and inspiration with Scala, and the
+facilities in Scala for library-defined language extensions makes the code look
+almost exactly like X10 programs.
 
 We hope that people will embrace \apgas, either as a substitute for or as a
 complement to other concurrency libraries. Examples throughout the paper are
-verbatim Scala/\apgas code. X10 shares ancestry/inspiration with Scala, and the
-facilities in Scala for library-defined language extensions makes the code look
-almost exactly like X10 programs.
+verbatim Scala \apgas code. 
 
 \subsection{Overview of the \apgas Programming Model}
 

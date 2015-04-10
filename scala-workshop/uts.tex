@@ -11,10 +11,10 @@ A sequential implementation of UTS is straightforward. The code maintains a work
 In contrast, a parallel and distributed implementation of UTS is a challenge because of imbalance.
 We implement distributed work stealing with lifelines \cite{ppopp11}.
 
-\paragraph{Distributed algorithm.} A fixed collection of workers collaborate on the traversal. The workers are organized in a ring.
+\paragraph{Distributed Algorithm.} A fixed collection of workers collaborate on the traversal. The workers are organized in a ring.
 Each worker maintains a work list of pending nodes to visit and count of nodes already traversed. Each worker primarily processes its own list, following the sequential algorithm. If the list becomes empty, the worker tries to steal nodes from another random worker. If this fails because the victim's work list is empty as well, the worker sends a request to the next worker in the ring---its lifeline---and stops. If this lifeline now has or later obtains nodes to process, it deals a fraction of these nodes to the requester. One work list is initialized with the root node of the traversal. The traversal is complete when all workers have stopped and there are no deal messages from a lifeline in flight. The sum of the node counts is computed at that point.
 
-\paragraph{State machine.} Each worker can be in one of three states:
+\paragraph{State Machine.} Each worker can be in one of three states:
 \begin{itemize}
 \item work: the worker is processing nodes from its work list;
 \item wait: the worker is attempting to steal nodes from a random victim and waiting for the result;

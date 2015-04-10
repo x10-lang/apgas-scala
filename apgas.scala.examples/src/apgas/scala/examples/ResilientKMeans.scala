@@ -2,9 +2,12 @@ package apgas.scala.examples
 
 import apgas.Configuration
 import apgas.MultipleException
+
 import apgas.scala.util._
 import apgas.scala._
+
 import java.util.Random
+
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -30,7 +33,7 @@ object ResilientKMeans {
     val numPoints: Int = try {
       args(0).toInt
     } catch {
-      case _: Throwable => 2000
+      case _: Throwable => 20000
     }
     val iterations: Int = try {
       args(1).toInt
@@ -39,8 +42,10 @@ object ResilientKMeans {
     }
 
     System.setProperty(Configuration.APGAS_RESILIENT, "true")
+    
     System.setProperty(Configuration.APGAS_SERIALIZATION_EXCEPTION, "true")
     // PS: I need this because java is not the default on my system..
+    
     System.setProperty(Configuration.APGAS_JAVA, "java8")
 
     if (System.getProperty(Configuration.APGAS_PLACES) == null) {
@@ -55,7 +60,7 @@ object ResilientKMeans {
       Array.ofDim[Float](CLUSTERS, DIM)
     }
 
-    def pointsForPlace = (i: Int) => {
+    def pointsForPlace(i: Int) : ListBuffer[Array[Float]] = {
       val rand = new Random(i)
       ListBuffer.fill[Array[Float]](numPoints / NUM_PLACES) {
         Array.fill[Float](DIM) { rand.nextFloat() }
@@ -70,7 +75,7 @@ object ResilientKMeans {
     val centralNewClusters = Array.ofDim[Float](CLUSTERS, DIM)
     val centralClusterCounts = Array.ofDim[Int](CLUSTERS)
 
-    // arbitrarily initialize central clusters to first few points
+    // Arbitrarily initialize central clusters to first few points
     for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
       centralCurrentClusters(i)(j) = globalPoints()(i)(j)
     }
@@ -143,7 +148,9 @@ object ResilientKMeans {
                     centralNewClusters(i)(j) += placeClusters.clusters(i)(j)
                   }
                 }
+              }
 
+              synchronized {
                 for (j <- 0 until CLUSTERS) {
                   centralClusterCounts(j) += placeClusters.clusterCounts(j)
                 }
@@ -202,6 +209,7 @@ object ResilientKMeans {
                 val chunkSize = pointsToRedistribute.size / survivorList.size
                 val leftOver = pointsToRedistribute.size % survivorList.size
                 var i = 0
+                
                 finish {
                   for (survivorPlace <- survivorList) {
                     val numToRedistribute = {

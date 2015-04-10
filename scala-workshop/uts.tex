@@ -1,9 +1,20 @@
 \section{Unbalanced Tree Search}
-Problem definition. Maybe show a partial tree.
 
-Concurrent work-stealing.
+The Unbalanced Tree Search benchmark (UTS) measures the rate of traversal of
+a tree generated on the fly using a splittable random number
+generator \cite{lcpc06}. Each node in the tree is identified by a 160-bit hash.
+The UTS specification describes several cryptographic laws for computing the number and hashes of the children of a node.
+The intend is to synthesize trees that are deterministic but unbalanced in unpredictable ways. 
 
-Figure~\ref{fig:uts-state} shows the main state transitions.
+A sequential implementation of UTS is straightforward. The code maintains a work list of pending nodes to visit, initialized with the root node of the tree. It repeatedly pops a node from the work list, computes the list of children for this node, and adds them to the work list, while keeping the count of the nodes processed so far. An empty work list signals the termination of the traversal.
+
+In contrast, a parallel and distributed implementation of UTS is a challenge because of imbalance.
+We implement distributed work stealing with lifelines \cite{ppopp11}.
+
+\paragraph{Distributed algorithm.} A fixed collection of workers collaborate on the traversal. The workers are organized in a ring.
+Each worker maintains a work list of pending nodes to visit and count of nodes already traversed. Each worker primarily processes its own list, following the sequential algorithm. If the list becomes empty, the worker tries to steal nodes from another random worker. If this fails because the victim's work list is empty as well, the worker sends a request to the next worker in the ring---its lifeline---and stops. If this lifeline now has or later obtains nodes to process, it sends a fraction of these nodes to the requester. One work list is initialized with the root node of the traversal. The traversal is complete when all workers have stopped. The sum of the node counts is computed at that point.
+
+\paragraph{State machine.} Figure~\ref{fig:uts-state} shows the main state transitions.
 
 \begin{figure}
 \centering

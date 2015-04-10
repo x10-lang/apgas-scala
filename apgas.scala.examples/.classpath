@@ -12,5 +12,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/apgas.examples"/>
 	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-cluster_2.11-2.3.9.jar"/>
 	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/akka-remote_2.11-2.3.9.jar"/>
+	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/protobuf-java-2.5.0.jar"/>
+	<classpathentry kind="lib" path="/home/psuter/software/akka/akka-2.3.9/lib/akka/netty-3.8.0.Final.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

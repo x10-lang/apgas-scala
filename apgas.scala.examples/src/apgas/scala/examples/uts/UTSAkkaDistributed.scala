@@ -11,7 +11,11 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 
-object UTSAkka {
+import akka.remote.RemoteScope
+
+import com.typesafe.config.ConfigFactory
+
+object UTSAkkaDistributed {
   import Common._
   
   // workers protocol
@@ -50,37 +54,69 @@ object UTSAkka {
         2
     }
     
-    val system = ActorSystem("uts-system")
+    val thisWorker = try {
+      args(2).toInt
+    } catch {
+      case _ : Throwable =>
+        println("Default to worker 0")
+        0
+    }
+    
+    val config = ConfigFactory.parseString(s"""
+      akka {
+        actor {
+          provider = "akka.remote.RemoteActorRefProvider"
+        }
+  
+        remote {
+          transport = "akka.remote.netty.NettyRemoteTransport"
+    
+          netty.tcp {
+            hostname = "localhost"
+            port = ${2550 + thisWorker}
+          }
+        }
+      }
+    """)
+    
+    val system = ActorSystem("uts-system", config)
     
     implicit val dispatcher = system.dispatcher
     
-    val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
+    if(thisWorker == 0) {
+      val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
     
-    println("Warmup...")
-    Await.result(master ? Compute(seed, (depth - 2) max 5), 1 hour)
+      println("Warmup...")
+      Await.result(master ? Compute(seed, (depth - 2) max 5), 1 hour)
     
-    println("Working...")
-    val t0 = System.nanoTime()
-    val result = Await.result(master ? Compute(seed, depth), 1 hour)
+      println("Working...")
+      val t0 = System.nanoTime()
+      val result = Await.result(master ? Compute(seed, depth), 1 hour)
     
-    result match {
-      case Count(s) =>
-        val t1 = System.nanoTime()
-        printResult(s"actors-$numWorkers", depth, s, t0, t1)
-        checkResult(depth, s)
+      result match {
+        case Count(s) =>
+          val t1 = System.nanoTime()
+          printResult(s"actors-$numWorkers", depth, s, t0, t1)
+          checkResult(depth, s)
          
-      case _ =>
-        println("Unexpected result: " + result)
-    }
+        case _ =>
+          println("Unexpected result: " + result)
+      }
     
-    system.shutdown()
+      system.shutdown()
+    } else {
+      println("Waiting commands from master...")
+    }
   }
   
-  class Master(numWorkers : Int) extends Actor with ActorLogging {
+  class Master(val numWorkers : Int) extends Actor with ActorLogging {
     val workers = Vector.tabulate[ActorRef](numWorkers) { i =>
-      context.actorOf(Props(new Worker(self, i)), name = s"worker-$i")
+      val where = i % numWorkers
+      val actorAddress = AddressFromURIString(s"akka.tcp://uts-system@localhost:${2550+where}")
+      val me = self
+      context.actorOf(Props(new Worker(me, i)).withDeploy(Deploy(scope = RemoteScope(actorAddress))), name = s"worker-$i")
     }
-    
+      
     var seed : Int = 0
     var maxDepth : Int = 0
     var asker : Option[ActorRef] = None
@@ -117,6 +153,7 @@ object UTSAkka {
           b.initialize(MessageDigest.getInstance("SHA-1"), seed, maxDepth)
         
           dealtCounts(numWorkers - 1) = 1
+                  
           workers(0) ! LifelineDeal(b)
         }
         

@@ -17,6 +17,7 @@ X10, and by extension
 \apgas, has been used successfully to implement distributed applications
 running across tens of thousands of cores~\cite{TardieuETAL14X10ApgasAtPetascale}.
 
+TODO
 
 Current state requires programmers interested in the \apgas model to buy in the
 X10 language and development platform, which may not be possible for an array
@@ -41,33 +42,48 @@ almost exactly like X10 programs.
 A {\em place} is an abstraction of mutable, shared-memory region and worker threads operating on this memory.
 A single application typically runs over a collection of places. In this work, each place is implemented as a separate JVM.
 
-A {\em task} is an abstraction of a sequence of computations. In this work, each task is specified as a no-arg, unit-type lambda.
-Each task is bound to a particular place and can only accesses the memory at this place. 
-A task can spawn local and remote tasks, i.e., tasks in the same place or elsewhere.
+A {\em task} is an abstraction of a sequence of computations. In this work, a task is specified as a block.
+Each task is bound to a particular place. 
+A task can spawn local and remote tasks, i.e., tasks to be executed in the same place or elsewhere.
 
-A remote task executes on a snapshot of the parent task's heap captured when the task is spawned.
-A task can construct \emph{global references} to objects in its heap to work around the capture semantics.
+A local task shares the heap of the parent task. A remote task executes on a snapshot of the parent task's heap captured when the task is spawned. A task can instantiate \emph{global references} to objects in its heap to work around the capture semantics.
 Global references are copied as part of the snapshot but not the target objects. A global reference can only be dereferenced
-at the place of the target object where it resolves to the original object. 
+at the place of the target object where it resolves to the original object.
 
 A task can wait for the termination of all the tasks transitively spawned from it.
 Thanks to global references, remote tasks, and termination control,
-a task can indirectly access and update remote objects.
+a task can indirectly manipulate remote objects.
 
-The three fundamental control structures in programming model are
-\lstinline{async}, \lstinline{at}, and \lstinline{finish}, whose signatures in
+The two fundamental control structures in APGAS are
+ \lstinline{asyncAt}, and \lstinline{finish}, whose signatures in
 the Scala implementation are:
 \begin{lstlisting}
-  def async(body: $\RA$Unit) : Unit
-  def at[T:Serialization](place: Place)(body: $\RA$T) : T
+  def asyncAt(place: Place)(body: $\RA$Unit) : Unit
   def finish(body : $\RA$Unit) : Unit
 \end{lstlisting}
 As is common in Scala libraries, we use by-name arguments to capture blocks.
+
+The \lstinline{async} construct spawns an asynchronous task at place \lstinline{p} and returns
+immediately. It is therefore the primitive construct for both \emph{concurrency} and \emph{distribution}.
+The \lstinline{finish} construct detects termination: an invocation of
+\lstinline{finish} will execute its body and block until all nested invocations
+of \lstinline{asyncAt} have completed. The set of \lstinline{asyncAt} invocations
+that are controlled includes all recursive invocations, including all remote
+ones. This makes \lstinline{finish} a powerful contribution of \apgas.
+
+Because spawning local tasks is so common, we have an optimized version of \lstinline{asyncAt} for this purpose with signature:
+\begin{lstlisting}
+  def async(body: $\RA$Unit) : Unit
+\end{lstlisting}  
+
+TODO
+
+\begin{lstlisting}
+  def at[T:Serialization](place: Place)(body: $\RA$T) : T
+\end{lstlisting}
 We discuss the \lstinline{Serialization} type class in
 Section~\ref{sec:serialization}.
 
-The \lstinline{async} construct spawns an asynchronous task and returns
-immediately. It is therefore the primitive construct for \emph{concurrency}.
 
 The primitive construct for \emph{distribution} is \lstinline{at}. The invocation
 \begin{lstlisting}

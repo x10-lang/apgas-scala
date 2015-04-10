@@ -31,7 +31,7 @@ As is common in Scala libraries, we use by-name arguments to capture blocks.
 The \lstinline{asyncAt} construct spawns an asynchronous task at place \lstinline{p} and returns
 immediately. It is therefore the primitive construct for both \emph{concurrency} and \emph{distribution}.
 The \lstinline{finish} construct detects termination: an invocation of
-\lstinline{finish} will execute its body and block until all nested invocations
+\lstinline{finish} will execute its body and then block until all nested invocations
 of \lstinline{asyncAt} have completed. The set of \lstinline{asyncAt} invocations
 that are controlled includes all recursive invocations, including all remote
 ones. This makes \lstinline{finish} a powerful contribution of \apgas.
@@ -54,7 +54,7 @@ version of a Fibonacci number computation can be expressed as:
   }
 \end{lstlisting}
 In the code above, each recursive invocation of \lstinline{fib} spawns an
-additional, asynchronous, task, and \lstinline{finish} blocks until all
+additional asynchronous task, and \lstinline{finish} blocks until all
 recursive dependencies have been computed.
 
 Another common pattern is to execute a computation remotely and block until the

@@ -1,14 +1,14 @@
 \section{Distributed \kmeans Clustering}
 \label{sec:kmeans}
 
-The K-Means benchmark uses Lloyd's algorithm~\cite{Lloyd1982Least} to divide a set of points in a $d$-dimensional space into $k$ disjoint clusters.
+The \kmeans benchmark uses Lloyd's algorithm~\cite{Lloyd1982Least} to divide a set of points in a $d$-dimensional space into $k$ disjoint clusters.
 Given an arbitrary set of initial clusters, the algorithm iterates over the following steps:
 \begin{enumerate}
   \item For each point, assign that point to whichever cluster is closest (by Euclidean distance to the cluster centroid).
-  \item For each cluster, update the centroid (the arithmetic mean of all points in that cluster).
+  \item For each cluster, update the centroid (the arithmetic mean of all points assigned to that cluster).
 \end{enumerate}
 
-Cluster contributions may be computed in parallel for each point, with two collective reductions across all processes to compute new cluster centroids.
+Distributed computation is straightforward: each process holds a portion of the points and computes cluster assignments and centroid contributions for each point. 
 
 Problem definition. Why it's ``easy'' to distribute.
 

@@ -24,6 +24,16 @@ object HelloPatterns {
     
     val v = at(p) { evalThere(arg1, arg2) }
     
+    import _root_.apgas.scala.util._
+    
+    val r = PlaceLocalRef.forPlaces(places) { 42 }
+    
+    val total = places.foldLeft(0) { (i,p) =>
+      i + at(p) { r() }
+    }
+    
+    println(total)
+    
     println(v)
     
     def fib(i : Int) : Long = if(i <= 1) i else {

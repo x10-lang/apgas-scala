@@ -2,17 +2,17 @@
 \label{sec:serialization}
 
 \paragraph{APGAS Library.}
-The APGAS library is implemented in Java 8. It exploits services of the JVM and Java libraries whenever possible, e.g., the fork/join framework, Java serialization, and Java collections.
-
-APGAS is built on top of the Hazelcast in-memory data grid~\cite{hazelcast}. Like APGAS, Hazelcast is an open source framework implemented in Java and deployed as a jar file. APGAS relies on Hazelcast to (i)~connect and coordinate elastic, distributed clusters of JVMs, (ii)~invoke remote tasks via its distributed executor service, and (iii)~protect critical runtime and application data from failures. In particular Hazelcast notifies APGAS when places are added to or removed from a running application.
-
-The APGAS library implements the core elements of the APGAS programming model: lightweight tasks, distributed termination detection, and global heap references. Exceptions escaping from tasks are collected by the innermost enclosing finish.
-By setting the \emph{apgas.resilient} system property at startup time, the application can request resilient versions of these core elements. Remote task invocations fail gracefully when the destination place is unavailable. Resilient finish ensures \emph{happen-before invariance}~\cite{ppopp14,ecoop14}.
-
-APGAS supports elasticity. Places can be added to a running application by simply launching a new JVM with the \emph{ip:port} address of an existing JVM in the cluster. For convenience, we implement two alternative launchers to start multiple places at once either on the localhost or, using Hadoop YARN, in a distributed system.
+The APGAS library is implemented in in about 2,000 lines of Java 8 code. It uses the fork/join framework for scheduling tasks in each place and is built on top of the Hazelcast in-memory data grid~\cite{hazelcast} for distribution. APGAS relies on Hazelcast to connect distributed clusters of JVMs and invoke remote tasks. 
+APGAS supports elasticity. Places can be added to a running application by simply launching a new JVM with the \emph{ip:port} address of an existing JVM in the cluster. 
 Applications can register a callback that is invoked when a place is added or has failed.
 
-The APGAS library is currently implemented in about 2,000 non-blank, non-comment lines of Java code. About a third of this code implements the resilient and non-resilient distributed termination detection algorithms. In comparison the X10 compiler, runtime, and standard library code bases comprise more than 200,000 lines of X10, Java, and C++ code.\footnote{Data generated using David A. Wheeler's SLOCCount.}
+%The APGAS library implements the core elements of the APGAS programming model: lightweight tasks, distributed termination detection, and global heap references. Exceptions escaping from tasks are collected by the innermost enclosing finish.
+%By setting the \emph{apgas.resilient} system property at startup time, the application can request resilient versions of these core elements. Remote task invocations fail gracefully when the destination place is unavailable. Resilient finish ensures \emph{happen-before invariance}~\cite{ppopp14,ecoop14}.
+
+%For convenience, we implement two alternative launchers to start multiple places at once either on the localhost or, using Hadoop YARN, in a distributed system.
+%
+
+%The APGAS library is currently implemented in about 2,000 non-blank, non-comment lines of Java code. About a third of this code implements the resilient and non-resilient distributed termination detection algorithms. In comparison the X10 compiler, runtime, and standard library code bases comprise more than 200,000 lines of X10, Java, and C++ code.\footnote{Data generated using David A. Wheeler's SLOCCount.}
 
 \paragraph{Serialization.}
 Use of type class, mostly to support primitive types and

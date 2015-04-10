@@ -3,7 +3,6 @@ package uts
 
 import scala.math.log
 
-import java.io.Serializable
 import java.security.MessageDigest
 
 object Bag {
@@ -11,7 +10,7 @@ object Bag {
   private val den : Double = Math.log(4.0 / (1.0 + 4.0))
 }
 
-final class Bag(n : Int = 10) {
+final class Bag(n : Int = 10) extends Serializable {
   private var hash : Array[Byte] = new Array[Byte](n * 20 + 4)
   private var depth : Array[Int] = new Array[Int](n)
   private var lower : Array[Int] = new Array[Int](n)
@@ -171,5 +170,10 @@ final class Bag(n : Int = 10) {
     depth = d
     lower = l
     upper = u
+  }
+  
+  def clear() : Unit = {
+    sz = 0
+    count = 0L
   }
 }

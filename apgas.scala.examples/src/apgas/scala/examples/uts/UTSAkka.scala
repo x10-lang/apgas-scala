@@ -37,11 +37,21 @@ object UTSAkka {
     val depth = try {
       args(0).toInt
     } catch {
-      case _ : Throwable => 13
+      case _ : Throwable =>
+        println("Defaulting to maxDepth=13...")
+        13
+    }
+    
+    val numWorkers = try {
+      args(1).toInt
+    } catch {
+      case _ : Throwable =>
+        println("Defaulting to 2 workers...")
+        2
     }
     
     val system = ActorSystem("uts-system")
-    val numWorkers : Int = 2 
+    
     implicit val dispatcher = system.dispatcher
     
     val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
@@ -116,7 +126,7 @@ object UTSAkka {
               
         var finished = true
         for(i <- 0 until numWorkers if finished) {
-          if(requestedCounts(i) != dealtCounts((i + 1) % numWorkers)) {
+          if(requestedCounts(i) != dealtCounts((numWorkers + i - 1) % numWorkers)) {
             finished = false
           }
         }
@@ -159,9 +169,10 @@ object UTSAkka {
     def idle : Receive = {
       case InitWorkers(ws) =>
         work.clear()
+        
         workers = ws
         if(id < workers.size - 1) {
-          lifeline = Some(ws((workers.size + id - 1) % workers.size))
+          lifeline = Some(ws(id + 1))
         } else {
           lifeline = None
         }
@@ -243,9 +254,9 @@ object UTSAkka {
         self ! Work
         
       case NoDeal =>
-        val next = workers((workers.size + id - 1) % workers.size)
+        val prev = workers((workers.size + id - 1) % workers.size)
         requestedCount += 1
-        next ! LifelineReq(self)
+        prev ! LifelineReq(self)
         master ! LocalTermination(id, requestedCount, dealtCount)
         requestedCount = 0
         dealtCount = 0

@@ -76,3 +76,44 @@ UTS: three problems, three solutions.
 UTS \apgas: concurrency control implemented as multiple paradigms (synchronized
 data access, global invariants, active messages). Concurrency is more
 fine-grained.
+
+
+% Scala performance
+
+%UTSAPGAS 32 places, 1 worker/place, depth 15
+%[uts-apgas-32] depth: 15, performance: 4230646601/15.617225935 = 270.8961641848719M nodes/s
+%[uts-apgas-32] depth: 15, performance: 4230646601/15.757630678 = 268.4824062355144M nodes/s
+%[uts-apgas-32] depth: 15, performance: 4230646601/15.730685914 = 268.9422841527087M nodes/s
+
+%UTSAkka 32 process, 1 actor/process, depth 15
+%[actors-32] depth: 15, performance: 4230646601/15.605088175 = 271.1068693464784M nodes/s
+%[actors-32] depth: 15, performance: 4230646601/15.478703563 = 273.3204744041263M nodes/s
+%[actors-32] depth: 15, performance: 4230646601/15.208430648 = 278.1777225355172M nodes/s
+
+%UTSAkka 1 process, 32 actors, depth 15
+%[actors-32] depth: 15, performance: 4230646601/14.622429161 = 289.32584007886373M nodes/s
+%[actors-32] depth: 15, performance: 4230646601/14.783925108 = 286.16531605065273M nodes/s
+%[actors-32] depth: 15, performance: 4230646601/14.852197401 = 284.8498768751316M nodes/s
+
+
+%UTSSequential depth 13
+%[serial] depth: 13, performance: 264459392/27.782491057 = 9.518922959695061M nodes/s
+%[serial] depth: 13, performance: 264459392/27.740853577 = 9.533210334207734M nodes/s
+%[serial] depth: 13, performance: 264459392/27.538216937 = 9.603359309900553M nodes/s
+
+
+% Java performance
+
+%GlobalUTS 32 places, 1 worker/place, depth 15 (hacked non resilient)
+%Depth: 15, Places: 32, Performance: 4230646601/15.191 = 278.48M nodes/s using 0 transactions
+%Depth: 15, Places: 32, Performance: 4230646601/15.267 = 277.09M nodes/s using 0 transactions
+%Depth: 15, Places: 32, Performance: 4230646601/15.138 = 279.46M nodes/s using 0 transactions
+
+%MultiUTS 1 place, 32 workers, depth 15 (hacked non resilient)
+%Depth: 15, Locations: 32, Performance: 4230646601/14.601 = 289.73M nodes/s using 0 transactions
+%Depth: 15, Locations: 32, Performance: 4230646601/14.791 = 286.02M nodes/s using 0 transactions
+%Depth: 15, Locations: 32, Performance: 4230646601/14.557 = 290.61M nodes/s using 0 transactions
+
+%GlobalUTS 32 places, 1 worker/place, depth 15 (resilient map)
+%Depth: 15, Places: 32, Performance: 4230646601/15.883 = 266.35M nodes/s using 1119 transactions
+

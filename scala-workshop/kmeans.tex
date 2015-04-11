@@ -16,27 +16,75 @@ points and computes cluster assignments and centroid contributions for each
 point. At each iteration, a master process collects all centroid contributions,
 computes the aggregates, and communicates the updated values to all workers.
 
-\begin{lstlisting}
-  for(iter $\lA$ 0 until maxIter if !converged()) {
-    finish {
-      for (p $\lA$ places) {
-        async {
-          val placeResult = at(p) { matchPoints() }
-          synchronized {
-            for (i $\lA$ 0 until C; j $\lA$ 0 until D) {
-              newCentroids(i)(j) += placeResult.centroids(i)(j)
-            }
-            for (j $\lA$ 0 until C) {
-              newCounts(j) += placeResult.counts(j)
-            }
-          }
-    }}}
+% \begin{lstlisting}
+%   for(iter $\lA$ 0 until maxIter if !converged()) {
+%     finish {
+%       for (p $\lA$ places) {
+%         async {
+%           val placeResult = at(p) { matchPoints() }
+%           synchronized {
+%             for (i $\lA$ 0 until C; j $\lA$ 0 until D) {
+%               newCentroids(i)(j) += placeResult.centroids(i)(j)
+%             }
+%             for (j $\lA$ 0 until C) {
+%               newCounts(j) += placeResult.counts(j)
+%             }
+%           }
+%     }}}
+% 
+%     newCentroids /= newCounts
+%     centroids = newCentroids
+%     counts = 0
+%   }
+% \end{lstlisting}
+ 
+Figure~\ref{fig:kmeansCode} shows the code for a distributed \kmeans computation with the APGAS library.
+Each process holds a portion of the points and computes cluster assignments and centroid contributions for each point; in addition, place 0 maintains the current set of cluster centroids.
+In each iteration, an \lstinline{async} task is created for each place.
+The \lstinline{at} construct is used to compute cluster contributions remotely at the place; \lstinline{at} automatically captures the current set of \lstinline{centralClusters} and sends them as part of the message to the remote place.
+The place contributions to the central clusters are returned to place 0 on completion of the remote computation.
+The \lstinline{finish} construct ensures that contributions for all places are computed before continuing with the next iteration.
 
-    newCentroids /= newCounts
-    centroids = newCentroids
-    counts = 0
+\begin{figure}[tbp]
+  \begin{lstlisting}
+class ClusterState extends Serializable {
+  val clusters = Array.ofDim[Float](K, D)
+  val clusterCounts = Array.ofDim[Int](K)
+}
+val clusterState = PlaceLocalRef.forPlaces(places) {
+  new ClusterState()
+}
+val centralClusters = Array.ofDim[Float](K, D)
+val centralClusterCounts = Array.ofDim[Int](K)
+
+while (!converged()) {
+  finish {
+    for (place <- places) {
+      async {
+        val placeContributions = at(place) {
+          val clusters = clusterState().clusters
+          val counts = clusterState().counts
+
+          for (p <- 0 until ps.length) {
+            val c = closestCentroid(points(p), centralClusters)
+            for (d <- 0 until D) {
+              clusters(c)(d) += points(p)(d)
+            }
+            counts(c) += 1
+          }
+          clusterState
+        }
+        // Add place contributions to centralClusters
+        // Add place contributions to centralClusterCounts
+      }
+    }
   }
-\end{lstlisting}
+}  
+
+  \end{lstlisting}
+  \caption{APGAS code for \kmeans}
+  \label{fig:kmeansCode}
+\end{figure}
 
 % Problem definition. Why it's ``easy'' to distribute.
 % 

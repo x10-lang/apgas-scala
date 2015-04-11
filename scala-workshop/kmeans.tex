@@ -102,28 +102,16 @@ actor-based implemention of \kmeans clustering using Akka.
     val localCentroids $\EQ$ $\ldots$; val localCounts $\EQ$ $\ldots$
     override def receive $\EQ$ {
       case Update(centroids) $\RA$
-        compute(centroids, points, $\ldots$)
+        compute(centroids, this, $\ldots$)
         sender ! Updated(localCentroids, localCounts)
   } }
 \end{lstlisting}
 \caption{Code structure for \kmeans in Akka.\label{fig:kmeansakka}}
 \end{figure}
-Almost as a dual of the \apgas implementation, the movement of data is entirely
+Almost as a dual to the \apgas implementation, the movement of data is entirely
 explicit, but the control flow must be inferred from the flow of messages: the
 master actor sends itself \lstinline{Run} messages to continue the computation,
 and must keep count of how many \lstinline{Updated} messages it received from
 workers to know when an iteration is complete. There is no need for data
 synchronization, as the model enforces that message processing within an actor
 is always a sequential operation.
-
-% Problem definition. Why it's ``easy'' to distribute.
-% 
-% Contrast with actors: messaging and communication is implicit vs. explicit.
-% 
-% Shared memory is not idiomatic in Akka, whereas embraced in APGAS. Ex: updating
-% the central array. This means we end up with code that requires concurrency
-% control.
-% 
-% Here we just used \lstinline{synchronized}. If Java had a proper
-% implementation or arrays with atomic increments for floats (analogous to
-% \lstinline{AtomicIntegerArray}), we could also just use that.

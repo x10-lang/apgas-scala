@@ -1,10 +1,32 @@
-\section{Selected Implementation Details}
+\section{Implementation Status}
 \label{sec:serialization}
 
-\paragraph{APGAS Library.}
-The APGAS library is implemented in in about 2,000 lines of Java 8 code. It uses the fork/join framework for scheduling tasks in each place and is built on top of the Hazelcast in-memory data grid~\cite{hazelcast} for distribution. APGAS relies on Hazelcast to connect distributed clusters of JVMs and invoke remote tasks. 
-APGAS supports elasticity. Places can be added to a running application by simply launching a new JVM with the \emph{ip:port} address of an existing JVM in the cluster. 
-Applications can register a callback that is invoked when a place is added or has failed.
+The \apgas library is implemented in about 2,000 lines of Java 8 code, with a
+Scala wrapper of about 200 lines. It uses the fork/join framework for
+scheduling tasks in each place. The library exposes its
+\lstinline{ExecutorService}, making it possible in principle to develop applications that
+use \apgas in cooperation with Scala futures.
+Distribution is built on top of the Hazelcast in-memory
+data grid~\cite{hazelcast}. \apgas relies on Hazelcast to
+connect distributed clusters of JVMs and invoke remote tasks. 
+
+The Scala layer defines the \lstinline{Serialization} type class as a mechanism
+to handle all Scala types uniformly, converting them to types
+compatible with \lstinline{java.io.Serializable}, as required by Hazelcast. An
+alternative would be to bypass Java serialization entirely and use, e.g.,
+pickling
+\cite{MillerETAL13InstantPicklesGeneratingObjectorientedPicklerCombinators}.
+
+Another possible improvement is the handling of capture in closures:
+environment capture is a mechanism central to \apgas, but is error prone. The
+problem is well-known and the X10 compiler, for instance, handles it with
+custom warnings. In \apgas for Scala, using spores with properly defined
+headers
+\cite{MillerHallerOdersky14SporesTypebasedFoundationClosuresAgeConcurrency}
+would help clarify the movement of data between places.
+
+% APGAS supports elasticity. Places can be added to a running application by simply launching a new JVM with the \emph{ip:port} address of an existing JVM in the cluster. 
+% Applications can register a callback that is invoked when a place is added or has failed.
 
 %The APGAS library implements the core elements of the APGAS programming model: lightweight tasks, distributed termination detection, and global heap references. Exceptions escaping from tasks are collected by the innermost enclosing finish.
 %By setting the \emph{apgas.resilient} system property at startup time, the application can request resilient versions of these core elements. Remote task invocations fail gracefully when the destination place is unavailable. Resilient finish ensures \emph{happen-before invariance}~\cite{ppopp14,ecoop14}.
@@ -14,9 +36,9 @@ Applications can register a callback that is invoked when a place is added or ha
 
 %The APGAS library is currently implemented in about 2,000 non-blank, non-comment lines of Java code. About a third of this code implements the resilient and non-resilient distributed termination detection algorithms. In comparison the X10 compiler, runtime, and standard library code bases comprise more than 200,000 lines of X10, Java, and C++ code.\footnote{Data generated using David A. Wheeler's SLOCCount.}
 
-\paragraph{Serialization.}
-Use of type class, mostly to support primitive types and
-\lstinline{java.io.Serializable} together. In principle, paves the way for
-relying on pickling \cite{MillerETAL13InstantPicklesGeneratingObjectorientedPicklerCombinators} in future work.
-
-\paragraph{Closures and capture.} Currently not checking. Ideal use case for spores \cite{MillerHallerOdersky14SporesTypebasedFoundationClosuresAgeConcurrency}.
+% \paragraph{Serialization.}
+% Use of type class, mostly to support primitive types and
+% \lstinline{java.io.Serializable} together. In principle, paves the way for
+% relying on pickling \cite{MillerETAL13InstantPicklesGeneratingObjectorientedPicklerCombinators} in future work.
+% 
+% \paragraph{Closures and capture.} Currently not checking. Ideal use case for spores \cite{MillerHallerOdersky14SporesTypebasedFoundationClosuresAgeConcurrency}.

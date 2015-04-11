@@ -69,8 +69,26 @@ object Common {
   }
   
   def copy2DArray(a1 : Array[Array[Float]], a2 : Array[Array[Float]]) : Unit = {
-    for(i <- 0 until a1.length; j <- 0 until a1(0).length) {
+    for(i <- 0 until a1.length; j <- 0 until a1(i).length) {
       a2(i)(j) = a1(i)(j)
+    }
+  }
+  
+  trait Zero[T] { val zero : T }
+  implicit object IntZero extends Zero[Int] { val zero = 0 }
+  implicit object FloatZero extends Zero[Float] { val zero = 0.0f }
+  
+  def resetArray[T : Zero](a : Array[T]) : Unit = {
+    val zero = implicitly[Zero[T]].zero
+    for(i <- 0 until a.length) {
+      a(i) = zero
+    }
+  }
+  
+  def reset2DArray[T : Zero](a : Array[Array[T]]) : Unit = {
+    val zero = implicitly[Zero[T]].zero
+    for(i <- 0 until a.length; j <- 0 until a(i).length) {
+      a(i)(j) = zero
     }
   }
 }

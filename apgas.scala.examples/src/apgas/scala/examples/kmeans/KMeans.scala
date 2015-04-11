@@ -16,7 +16,7 @@ import java.util.Random
  * in the X10 Benchmarks (separate download from x10-lang.org)
  */
 object KMeans {
-  import Common.{ DIM, NUM_CENTROIDS, NUM_PLACES }
+  import Common.{ DIM, NUM_CENTROIDS, NUM_POINTS }
 
   class ClusterState extends PlaceLocal {
     val clusters      = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -24,23 +24,19 @@ object KMeans {
   }
 
   def main(args: Array[String]): Unit = {
-    Common.setup(numPlaces = NUM_PLACES)
-
-    val numPoints: Int = try {
+    val placeCount = try {
       args(0).toInt
     } catch {
-      case _: Throwable => Common.NUM_POINTS
+      case _ : Throwable => Common.NUM_PLACES
     }
-    val iterations: Int = try {
-      args(1).toInt
-    } catch {
-      case _: Throwable => 50
-    }
+    
+    Common.setup(numPlaces = placeCount)
+
+    val numPoints     : Int = Common.NUM_POINTS  
+    val maxIterations : Int = 50  
 
     printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
-      NUM_CENTROIDS, numPoints, DIM, NUM_PLACES)
-    
-    val maxIterations : Int = 20
+      NUM_CENTROIDS, numPoints, DIM, placeCount)
 
     val clusterState = PlaceLocal.forPlaces(places) { new ClusterState() }
 
@@ -48,12 +44,8 @@ object KMeans {
       Array.ofDim[Float](NUM_CENTROIDS, DIM)
     }
 
-    val points = PlaceLocalRef.forPlaces(places) {
-      // FIXME use common "init" method.
-      val rand = new Random(here.id)
-      Array.fill[Float](numPoints / places.size, DIM) {
-        rand.nextFloat()
-      }
+    val points = PlaceLocalRef.forPlaces(places) { 
+      Common.pointsForWorker(here.id, places.size).toArray
     }
 
     val centroids    = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -69,8 +61,9 @@ object KMeans {
 
     var converged = false
 
-    for(iter <- 0 until maxIterations if !converged) {
-      println("Iteration: " + iter)
+    var iter = 0
+    while(iter < maxIterations && !converged) {
+      print(".")
 
       finish {
         for (place <- places) {
@@ -125,16 +118,8 @@ object KMeans {
         newCentroids(k)(d) /= newCounts(k)
       }
 
-      converged = {
-        import scala.math.abs
-
-        for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
-          if (abs(centroids(i)(j) - newCentroids(i)(j)) > 0.0001) {
-            return false
-          }
-        }
-        return true
-      }
+      converged = Common.withinEpsilon(centroids, newCentroids)
+      
 
       for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
         centroids(i)(j) = newCentroids(i)(j)
@@ -147,19 +132,15 @@ object KMeans {
       for (i <- 0 until NUM_CENTROIDS) {
         newCounts(i) = 0
       }
+      
+      iter += 1
     }
     time = System.nanoTime() - time
 
-    for (d <- 0 until DIM) {
-      for (k <- 0 until NUM_CENTROIDS) {
-        if (k > 0) {
-          print(" ")
-        }
-        print(centroids(k)(d))
-      }
-      println()
-    }
+    Common.printCentroids(centroids)
 
-    printf("Time per iteration %.3f ms\n", time / 1e6 / iter)
+    printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
+      NUM_CENTROIDS, numPoints, DIM, placeCount)
+    printf("Time per iteration %.3f ms\n", time / 1e6 / maxIterations)
   }
 }

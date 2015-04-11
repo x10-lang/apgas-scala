@@ -3,24 +3,24 @@ package scala.examples
 package kmeans
 
 object Common {
-  val DIM           : Int = 2
-  val NUM_CENTROIDS : Int = 4
-  val NUM_PLACES    : Int = 4
-  val NUM_POINTS    : Int = 20000
+  val DIM           : Int = 4
+  val NUM_CENTROIDS : Int = 5
+  val NUM_PLACES    : Int = 2
+  val NUM_POINTS    : Int = 2000000
   
   def setup(numPlaces : Int = 1) : Unit = {
     // PS: I need this because java is not the default on my system..
     System.setProperty(Configuration.APGAS_JAVA, "java8")
 
     if (System.getProperty(Configuration.APGAS_PLACES) == null) {
-      System.setProperty(Configuration.APGAS_PLACES, s"$NUM_PLACES")
+      System.setProperty(Configuration.APGAS_PLACES, s"$numPlaces")
     }
   }
   
-  def pointsForWorker(workerID : Int) : Seq[Array[Float]] = {
+  def pointsForWorker(workerID : Int, numPlaces : Int) : Seq[Array[Float]] = {
     val rand = new java.util.Random(workerID)
     
-    Array.fill[Array[Float]](NUM_POINTS / NUM_PLACES) {
+    Array.fill[Array[Float]](NUM_POINTS / numPlaces) {
       Array.fill[Float](DIM) { rand.nextFloat() }
     }
   }
@@ -42,5 +42,35 @@ object Common {
     }
     
     closest
+  }
+  
+  def withinEpsilon(centroids1: Array[Array[Float]], centroids2: Array[Array[Float]]) : Boolean = {
+    import _root_.scala.math.abs
+    
+    for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
+      if (abs(centroids1(i)(j) - centroids2(i)(j)) > 0.0001) {
+        return false
+      }
+    }
+    return true
+  }
+  
+  def printCentroids(centroids : Array[Array[Float]]) : Unit = {
+    println()
+    for (d <- 0 until DIM) {
+      for (k <- 0 until NUM_CENTROIDS) {
+        if (k > 0) {
+          print(" ")
+        }
+        print(centroids(k)(d))
+      }
+      println()
+    }
+  }
+  
+  def copy2DArray(a1 : Array[Array[Float]], a2 : Array[Array[Float]]) : Unit = {
+    for(i <- 0 until a1.length; j <- 0 until a1(0).length) {
+      a2(i)(j) = a1(i)(j)
+    }
   }
 }

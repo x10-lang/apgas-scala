@@ -49,10 +49,6 @@ object ResilientKMeans {
       new ClusterState()
     }
 
-    val currentClusters = PlaceLocalRef.forPlaces(places) {
-      Array.ofDim[Float](NUM_CENTROIDS, DIM)
-    }
-
     def pointsForPlace(i: Int): ListBuffer[Array[Float]] = {
       val rand = new Random(i)
       ListBuffer.fill[Array[Float]](numPoints / NUM_PLACES) {
@@ -86,10 +82,6 @@ object ResilientKMeans {
           for (place <- currentPlaces) {
             async {
               val placeClusters = at(place) {
-                val clusters = currentClusters()
-
-                centralCurrentClusters.copyToArray(clusters)
-
                 val state = clusterState()
                 val newClusters = state.clusters
                 for (i <- 0 until NUM_CENTROIDS) {
@@ -106,7 +98,7 @@ object ResilientKMeans {
                 val ps = points()
 
                 for (p <- 0 until ps.length) {
-                  val closest = Common.closestCentroid(ps(p), clusters)
+                  val closest = Common.closestCentroid(ps(p), centralCurrentClusters)
 
                   for (d <- 0 until DIM) {
                     newClusters(closest)(d) += ps(p)(d)

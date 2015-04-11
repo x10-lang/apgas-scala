@@ -7,10 +7,54 @@ Given an arbitrary set of initial clusters, the algorithm iterates over the foll
   \item For each point, assign that point to whichever cluster is closest (by Euclidean distance to the cluster centroid).
   \item For each cluster, update the centroid (the arithmetic mean of all points assigned to that cluster).
 \end{enumerate}
+ 
+Figure~\ref{fig:kmeansCode} shows the code for a distributed \kmeans computation with the APGAS library.
+Each process holds a portion of the points and computes cluster assignments and centroid contributions for each point; in addition, place 0 maintains the current set of cluster centroids.
+In each iteration, an \lstinline{async} task is created for each place.
+The \lstinline{at} construct is used to compute cluster contributions remotely at the place; \lstinline{at} automatically captures the current set of \lstinline{centralClusters} and sends them as part of the message to the remote place.
+The place contributions to the central clusters are returned to place 0 on completion of the remote computation.
+The \lstinline{finish} construct ensures that contributions for all places are computed before continuing with the next iteration.
 
-Distributed computation is straightforward: each process holds a portion of the points and computes cluster assignments and centroid contributions for each point. 
+\begin{figure}[tbp]
+  \begin{lstlisting}
+class ClusterState extends Serializable {
+  val clusters = Array.ofDim[Float](K, D)
+  val clusterCounts = Array.ofDim[Int](K)
+}
+val clusterState = PlaceLocalRef.forPlaces(places) {
+  new ClusterState()
+}
+val centralClusters = Array.ofDim[Float](K, D)
+val centralClusterCounts = Array.ofDim[Int](K)
 
-Problem definition. Why it's ``easy'' to distribute.
+while (!converged()) {
+  finish {
+    for (place <- places) {
+      async {
+        val placeContributions = at(place) {
+          val clusters = clusterState().clusters
+          val counts = clusterState().counts
+
+          for (p <- 0 until ps.length) {
+            val c = closestCentroid(points(p), centralClusters)
+            for (d <- 0 until D) {
+              clusters(c)(d) += points(p)(d)
+            }
+            counts(c) += 1
+          }
+          clusterState
+        }
+        // Add place contributions to centralClusters
+        // Add place contributions to centralClusterCounts
+      }
+    }
+  }
+}  
+
+  \end{lstlisting}
+  \caption{APGAS code for \kmeans}
+  \label{fig:kmeansCode}
+\end{figure}
 
 Contrast with actors: messaging and communication is implicit vs. explicit.
 

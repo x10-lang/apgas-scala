@@ -5,8 +5,8 @@ package kmeans
 object Common {
   val DIM           : Int = 2
   val NUM_CENTROIDS : Int = 4
-  val NUM_PLACES    : Int = 2
-  val NUM_POINTS    : Int = 2000
+  val NUM_PLACES    : Int = 4
+  val NUM_POINTS    : Int = 20000
   
   def setup(numPlaces : Int = 1) : Unit = {
     // PS: I need this because java is not the default on my system..

@@ -21,20 +21,20 @@ import scala.collection.mutable.ListBuffer
  * in the X10 Benchmarks (separate download from x10-lang.org)
  */
 object ResilientKMeans {
-  val DIM = 2
-  val CLUSTERS = 4
-  val NUM_PLACES = 5
+  import Common.{ DIM, NUM_CENTROIDS, NUM_PLACES }
 
   class ClusterState extends Serializable {
-    val clusters = Array.ofDim[Float](CLUSTERS, DIM)
-    val clusterCounts = Array.ofDim[Int](CLUSTERS)
+    val clusters = Array.ofDim[Float](NUM_CENTROIDS, DIM)
+    val clusterCounts = Array.ofDim[Int](NUM_CENTROIDS)
   }
 
   def main(args: Array[String]): Unit = {
+    Common.setup(numPlaces = NUM_PLACES)
+
     val numPoints: Int = try {
       args(0).toInt
     } catch {
-      case _: Throwable => 20000
+      case _: Throwable => Common.NUM_POINTS
     }
     val iterations: Int = try {
       args(1).toInt
@@ -42,44 +42,38 @@ object ResilientKMeans {
       case _: Throwable => 20
     }
 
-    System.setProperty(Configuration.APGAS_RESILIENT, "true")
-    
-    System.setProperty(Configuration.APGAS_SERIALIZATION_EXCEPTION, "true")
-    // PS: I need this because java is not the default on my system..
-    
-    System.setProperty(Configuration.APGAS_JAVA, "java8")
+    printf("Resilient K-Means: %d clusters, %d points, %d dimensions, %d places\n",
+      NUM_CENTROIDS, numPoints, DIM, NUM_PLACES)
 
-    if (System.getProperty(Configuration.APGAS_PLACES) == null) {
-      System.setProperty(Configuration.APGAS_PLACES, NUM_PLACES.toString())
-    }
-
-    val globalClusterState = PlaceLocalRef.forPlaces[ClusterState](places) {
+    val clusterState = PlaceLocalRef.forPlaces(places) {
       new ClusterState()
     }
 
-    val globalCurrentClusters = PlaceLocalRef.forPlaces[Array[Array[Float]]](places) {
-      Array.ofDim[Float](CLUSTERS, DIM)
+    val currentClusters = PlaceLocalRef.forPlaces(places) {
+      Array.ofDim[Float](NUM_CENTROIDS, DIM)
     }
 
-    def pointsForPlace(i: Int) : ListBuffer[Array[Float]] = {
+    def pointsForPlace(i: Int): ListBuffer[Array[Float]] = {
       val rand = new Random(i)
       ListBuffer.fill[Array[Float]](numPoints / NUM_PLACES) {
         Array.fill[Float](DIM) { rand.nextFloat() }
       }
     }
 
-    val globalPoints = PlaceLocalRef.forPlaces(places) {
+    val points = PlaceLocalRef.forPlaces(places) {
       pointsForPlace(here.id)
     }
 
-    val centralCurrentClusters = Array.ofDim[Float](CLUSTERS, DIM)
-    val centralNewClusters = Array.ofDim[Float](CLUSTERS, DIM)
-    val centralClusterCounts = Array.ofDim[Int](CLUSTERS)
+    val centralCurrentClusters = Array.ofDim[Float](NUM_CENTROIDS, DIM)
+    val centralNewClusters = Array.ofDim[Float](NUM_CENTROIDS, DIM)
+    val centralClusterCounts = Array.ofDim[Int](NUM_CENTROIDS)
 
-    // Arbitrarily initialize central clusters to first few points
-    for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
-      centralCurrentClusters(i)(j) = globalPoints()(i)(j)
+    // arbitrarily initialize central clusters to first few points
+    for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
+      centralCurrentClusters(i)(j) = points()(i)(j)
     }
+
+    var time = System.nanoTime()
 
     var iter = 1
     var converged = false
@@ -92,32 +86,30 @@ object ResilientKMeans {
           for (place <- currentPlaces) {
             async {
               val placeClusters = at(place) {
-                val currentClusters = globalCurrentClusters()
+                val clusters = currentClusters()
 
-                for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
-                  currentClusters(i)(j) = centralCurrentClusters(i)(j)
-                }
+                centralCurrentClusters.copyToArray(clusters)
 
-                val clusterState = globalClusterState()
-                val newClusters = clusterState.clusters
-                for (i <- 0 until CLUSTERS) {
+                val state = clusterState()
+                val newClusters = state.clusters
+                for (i <- 0 until NUM_CENTROIDS) {
                   for (j <- 0 until DIM) {
                     newClusters(i)(j) = 0.0f
                   }
                 }
-                val clusterCounts = clusterState.clusterCounts
-                for (i <- 0 until CLUSTERS) {
+                val clusterCounts = state.clusterCounts
+                for (i <- 0 until NUM_CENTROIDS) {
                   clusterCounts(i) = 0
                 }
 
                 /* compute new clusters and counters */
-                val points = globalPoints()
+                val ps = points()
 
-                for (p <- 0 until points.length) {
-                  val closest = Common.closestCentroid(points(p), currentClusters)
+                for (p <- 0 until ps.length) {
+                  val closest = Common.closestCentroid(ps(p), clusters)
 
                   for (d <- 0 until DIM) {
-                    newClusters(closest)(d) += points(p)(d)
+                    newClusters(closest)(d) += ps(p)(d)
                   }
                   clusterCounts(closest) = clusterCounts(closest) + 1
                 }
@@ -127,20 +119,18 @@ object ResilientKMeans {
                   if (here.id == 2) System.exit(1)
                 }
 
-                clusterState
+                state
               }
 
               // Combine place clusters to central
               synchronized {
-                for (i <- 0 until CLUSTERS) {
-                  for (j <- 0 until DIM) {
-                    centralNewClusters(i)(j) += placeClusters.clusters(i)(j)
-                  }
+                for (k <- 0 until NUM_CENTROIDS; d <- 0 until DIM) {
+                  centralNewClusters(k)(d) += placeClusters.clusters(k)(d)
                 }
               }
 
               synchronized {
-                for (j <- 0 until CLUSTERS) {
+                for (j <- 0 until NUM_CENTROIDS) {
                   centralClusterCounts(j) += placeClusters.clusterCounts(j)
                 }
               }
@@ -148,14 +138,14 @@ object ResilientKMeans {
           }
         }
 
-        for (k <- 0 until CLUSTERS; d <- 0 until DIM) {
+        for (k <- 0 until NUM_CENTROIDS; d <- 0 until DIM) {
           centralNewClusters(k)(d) /= centralClusterCounts(k)
         }
 
         def testConvergence(): Boolean = {
           import scala.math.abs
 
-          for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
+          for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
             if (abs(centralCurrentClusters(i)(j) - centralNewClusters(i)(j)) > 0.0001) {
               return false
             }
@@ -166,7 +156,7 @@ object ResilientKMeans {
         iter += 1
         converged = testConvergence()
 
-        for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
+        for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
           centralCurrentClusters(i)(j) = centralNewClusters(i)(j)
         }
 
@@ -181,7 +171,7 @@ object ResilientKMeans {
             // clear existing points
             finish {
               for (survivorPlace <- survivorList) asyncAt(survivorPlace) {
-                globalPoints().clear()
+                points().clear()
               }
             }
             // regenerate or redistribute points
@@ -189,7 +179,7 @@ object ResilientKMeans {
               if (survivorList.contains(place)) {
                 //println(place + " survived. Regenerating points.")
                 asyncAt(place) {
-                  val pointsHere = globalPoints()
+                  val pointsHere = points()
                   synchronized { pointsHere.++=(pointsForPlace(here.id)) }
                 }
               } else {
@@ -198,7 +188,7 @@ object ResilientKMeans {
                 val chunkSize = pointsToRedistribute.size / survivorList.size
                 val leftOver = pointsToRedistribute.size % survivorList.size
                 var i = 0
-                
+
                 finish {
                   for (survivorPlace <- survivorList) {
                     val numToRedistribute = {
@@ -209,7 +199,7 @@ object ResilientKMeans {
                     val pointsToSend = pointsToRedistribute.take(numToRedistribute)
                     pointsToRedistribute = pointsToRedistribute.drop(numToRedistribute)
                     asyncAt(survivorPlace) {
-                      val pointsHere = globalPoints()
+                      val pointsHere = points()
                       synchronized { pointsHere.++=(pointsToSend) }
                     }
                   }
@@ -220,17 +210,18 @@ object ResilientKMeans {
         }
       }
 
-      for (i <- 0 until CLUSTERS; j <- 0 until DIM) {
+      for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
         centralNewClusters(i)(j) = 0.0f
       }
 
-      for (i <- 0 until CLUSTERS) {
+      for (i <- 0 until NUM_CENTROIDS) {
         centralClusterCounts(i) = 0
       }
     }
+    time = System.nanoTime() - time
 
     for (d <- 0 until DIM) {
-      for (k <- 0 until CLUSTERS) {
+      for (k <- 0 until NUM_CENTROIDS) {
         if (k > 0) {
           print(" ")
         }
@@ -238,5 +229,6 @@ object ResilientKMeans {
       }
       println()
     }
+    printf("Time per iteration %.3f ms\n", time / 1e6 / iter)
   }
 }

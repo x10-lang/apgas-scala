@@ -45,7 +45,7 @@ object ResilientKMeans {
     printf("Resilient K-Means: %d clusters, %d points, %d dimensions, %d places\n",
       NUM_CENTROIDS, numPoints, DIM, NUM_PLACES)
 
-    val clusterState = PlaceLocalRef.forPlaces(places) {
+    val clusterState = GlobalRef.forPlaces(places) {
       new ClusterState()
     }
 
@@ -56,7 +56,7 @@ object ResilientKMeans {
       }
     }
 
-    val points = PlaceLocalRef.forPlaces(places) {
+    val points = GlobalRef.forPlaces(places) {
       pointsForPlace(here.id)
     }
 

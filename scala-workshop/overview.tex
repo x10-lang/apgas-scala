@@ -45,13 +45,13 @@ Because spawning local tasks is so common, the library defines an optimized vers
 We can use \lstinline{async} for local concurrency. For instance, a parallel
 version of a Fibonacci number computation can be expressed as:
 \begin{lstlisting}
-  def fib(i: Int) : Long = if(i $\SLE$ 1) i else {
-    var a, b: Long = 0L
+  def fib(i: Int) : Long $\EQ$ if(i $\SLE$ 1) i else {
+    var a, b: Long $\EQ$ 0L
     finish {
-      async { a = fib(i - 2) }
-      b = fib(i - 1)
+      async { a $\EQ$ fib(i $\MI$ 2) }
+      b $\EQ$ fib(i $\MI$ 1)
     }
-    a + b
+    a $\PL$ b
   }
 \end{lstlisting}
 In the code above, each recursive invocation of \lstinline{fib} spawns an
@@ -81,15 +81,13 @@ we can write:
 Initializing an independent object at each place is achieved using the
 \lstinline{forPlaces} helper:
 \begin{lstlisting}
-  val w = PlaceLocal.forPlaces(places) { new Worker() }
+  val w $\EQ$ PlaceLocal.forPlaces(places) { new Worker() }
 \end{lstlisting}
 At this stage, the variable \lstinline{w} holds a proper instance of
 \lstinline{Worker}. The important property of place-local objects is reflected
 in the following code:
 \begin{lstlisting}
-  asyncAt(p2) {
-    w.work($\ldots$)
-  }
+  asyncAt(p2) { w.work($\ldots$) }
 \end{lstlisting}
 When serializing the instance of \lstinline{PlaceLocal} that belongs to the
 closure, the runtime replaces the \lstinline{Worker} object by a named
@@ -128,4 +126,4 @@ benchmarks are beyond the scope of this short paper.
 % 
 
 In the following sections, we highlight some \apgas patterns in two concrete
-benchmarks.
+benchmarks, and provide contrast with the familiar actor paradigm of Akka.

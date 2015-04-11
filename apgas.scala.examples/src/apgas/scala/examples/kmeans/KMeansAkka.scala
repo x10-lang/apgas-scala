@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ArrayBuffer
 
 object KMeansAkka {
-  import Common.{ DIM, NUM_CENTROIDS, NUM_POINTS }
+  import Common._
   
   def main(args : Array[String]) : Unit = {
     implicit val timeout : Timeout = Timeout(1 hour)
@@ -56,8 +56,8 @@ object KMeansAkka {
     val newCounts    = Array.ofDim[Int](NUM_CENTROIDS)
     
     // Arbitrarily initialize centroids to first few points
-    val first = Common.pointsForWorker(0, numWorkers).take(NUM_CENTROIDS)
-    Common.copy2DArray(first.toArray, centroids)
+    val first = pointsForWorker(0, numWorkers).take(NUM_CENTROIDS)
+    copy2DArray(first.toArray, centroids)
     
     var requester : Option[ActorRef] = None
     var itersLeft = 0
@@ -76,11 +76,8 @@ object KMeansAkka {
           itersLeft -= 1
           print(".")
           
-          for(i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
-            newCentroids(i)(j) = 0.0f
-          }
-        
-          for(i <- 0 until NUM_CENTROIDS) { newCounts(i) = 0 }
+          reset2DArray(newCentroids)
+          resetArray(newCounts)
         
           updates = 0
 
@@ -107,7 +104,7 @@ object KMeansAkka {
           Common.copy2DArray(newCentroids, this.centroids)
                     
           self ! Run
-        } 
+        }
     }
   }
   
@@ -119,19 +116,15 @@ object KMeansAkka {
     
     override def receive = {
       case Centroids(centroids) =>
-        Common.copy2DArray(centroids, localCentroids)
-        
-        for (i <- 0 until NUM_CENTROIDS) {
-          localCounts(i) = 0
-        }
+        copy2DArray(centroids, localCentroids)
+        resetArray(localCounts)
         
         for (p <- 0 until points.length) {
-          val closest = Common.closestCentroid(points(p), centroids)
-          
+          val c = Common.closestCentroid(points(p), centroids)
           for (d <- 0 until DIM) {
-            localCentroids(closest)(d) += points(p)(d)
+            localCentroids(c)(d) += points(p)(d)
           }
-          localCounts(closest) += 1
+          localCounts(c) += 1
         }
         sender ! Updated(localCentroids, localCounts)
     }

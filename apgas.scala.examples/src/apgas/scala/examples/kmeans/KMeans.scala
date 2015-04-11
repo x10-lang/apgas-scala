@@ -18,9 +18,10 @@ import java.util.Random
 object KMeans {
   import Common._
 
-  class ClusterState extends PlaceLocal {
-    val clusters = Array.ofDim[Float](NUM_CENTROIDS, DIM)
-    val clusterCounts = Array.ofDim[Int](NUM_CENTROIDS)
+  class LocalData(numPoints: Int) extends Serializable {
+    val points    = Array.ofDim[Float](numPoints, DIM)
+    val centroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)
+    val counts    = Array.ofDim[Int](NUM_CENTROIDS)
   }
 
   def main(args: Array[String]): Unit = {
@@ -31,19 +32,15 @@ object KMeans {
     }
     Common.setup(numPlaces = numPlaces)
 
-    val numPoints = Common.NUM_POINTS
-
     val iterations = 50
 
     printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
-      NUM_CENTROIDS, numPoints, DIM, numPlaces)
+      NUM_CENTROIDS, NUM_POINTS, DIM, numPlaces)
 
-    val localState = PlaceLocal.forPlaces(places) {
-      new ClusterState()
-    }
-
-    val localPoints = PlaceLocalRef.forPlaces(places) {
-      Common.pointsForWorker(here.id, numPlaces).toArray
+    val localState = GlobalRef.forPlaces(places) {
+      val d = new LocalData(NUM_POINTS / numPlaces)
+      copy2DArray(Common.pointsForWorker(here.id, numPlaces).toArray, d.points)
+      d
     }
 
     val centroids    = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -52,7 +49,7 @@ object KMeans {
 
     // arbitrarily initialize central clusters to first few points
     for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
-      centroids(i)(j) = localPoints()(i)(j)
+      centroids(i)(j) = localState().points(i)(j)
     }
 
     var time = System.nanoTime()
@@ -66,32 +63,29 @@ object KMeans {
         for (place <- places) {
           async {
             val placeState = at(place) {
-              reset2DArray(localState.clusters)
-              resetArray(localState.clusterCounts)
+              reset2DArray(localState().centroids)
+              resetArray(localState().counts)
 
-              /* compute new clusters and counters */
-              val lps = localPoints()
-
+              val lps = localState().points
               for (p <- 0 until lps.length) {
                 val c = closestCentroid(lps(p), centroids)
-
                 for (d <- 0 until DIM) {
-                  localState.clusters(c)(d) += lps(p)(d)
+                  localState().centroids(c)(d) += lps(p)(d)
                 }
-                localState.clusterCounts(c) += 1
+                localState().counts(c) += 1
               }
-              localState
+              localState()
             }
 
             // Combine place clusters to central
             newCentroids.synchronized {
               for (k <- 0 until NUM_CENTROIDS; d <- 0 until DIM) {
-                newCentroids(k)(d) += placeState.clusters(k)(d)
+                newCentroids(k)(d) += placeState.centroids(k)(d)
               }
             }
             newCounts.synchronized {
               for (j <- 0 until NUM_CENTROIDS) {
-                newCounts(j) += placeState.clusterCounts(j)
+                newCounts(j) += placeState.counts(j)
               }
             }
           }

@@ -87,7 +87,7 @@ At this stage, the variable \lstinline{w} holds a proper instance of
 in the following code:
 \begin{lstlisting}
   asyncAt(p2) {
-    w.work$\ldots$
+    w.work($\ldots$)
   }
 \end{lstlisting}
 When serializing the instance of \lstinline{PlaceLocal} that belongs to the
@@ -98,29 +98,33 @@ reference. When the closure is deserialized at the destination place
 \lstinline{p2}.
 
 For a type \lstinline{T} that cannot extend \lstinline{PlaceLocal}, the library
-defines \lstinline{GlobalRef[T]}, which acts as a wrapper.\footnote{TODO
-explain the names.} We use the method \lstinline{apply(): T} to access the
+defines \lstinline{GlobalRef[T]}, which acts as a wrapper.\footnote{The name
+comes from the fact that a \lstinline{GlobalRef} is available globally,
+even though it points to place-local objects.}
+We use its method \lstinline{apply(): T} to access the
 wrapped value local to each place.
 
+\paragraph{Handling failures.} Remote invocations can fail, for instance if the
+code throws an exception or if the process hosting the place terminates
+unexpectedly. The error handling model of APGAS is to surface errors up to the
+first enclosing \lstinline{finish}, which throws an exception. The critical
+property that APGAS maintains is \emph{happens-before invariance}: failures
+cannot introduce execution orderings that are not possible under regular
+execution conditions \cite{ppopp14,ecoop14}. Detailed examples of resilient
+benchmarks are beyond the scope of this short paper.
 
-Place failure.
+% \subsection{Similarities and Differences with Futures and Actors}
+% 
+% Discuss future vs.\ async (returning void means no value). Future can be awaited anywhere, but must be awaited ``manually''.
+% 
+% finish counts (including distributed tasks!) and has no real equivalent.
+% 
+% Actors: unified model for concurrency and distribution.
+% 
+% Handling failures: Try vs Exception vs. Messages
+% 
+% Async at: active messages: get executed "immediately", actor messages handled one-by-one.
+% 
 
-\subsection{Similarities and Differences with Futures and Actors}
-
-Discuss future vs.\ async (returning void means no value). Future can be awaited anywhere, but must be awaited ``manually''.
-
-finish counts (including distributed tasks!) and has no real equivalent.
-
-Actors: unified model for concurrency and distribution.
-
-Handling failures: Try vs Exception vs. Messages
-
-Async at: active messages: get executed "immediately", actor messages handled one-by-one.
-
-In the following sections, we highlight some of the points above through two
-benchmarks, \kmeans clustering and unbalanced tree search.
-
-
-% \input{patterns}
-% Figure~\ref{fig:apgas-patterns} shows patterns.
-
+In the following sections, we highlight some \apgas patterns in two concrete
+benchmarks.

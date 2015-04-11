@@ -1,23 +1,51 @@
 \section{Distributed \kmeans Clustering}
 \label{sec:kmeans}
 
-The \kmeans benchmark uses Lloyd's algorithm~\cite{Lloyd1982Least} to divide a set of points in a $d$-dimensional space into $k$ disjoint clusters.
-Given an arbitrary set of initial clusters, the algorithm iterates over the following steps:
+The \kmeans benchmark uses Lloyd's algorithm~\cite{Lloyd1982Least} to divide a
+set of points in a $d$-dimensional space into $k$ disjoint clusters.  Given an
+arbitrary set of initial clusters, the algorithm iterates over the following
+steps:
 \begin{enumerate}
-  \item For each point, assign that point to whichever cluster is closest (by Euclidean distance to the cluster centroid).
-  \item For each cluster, update the centroid (the arithmetic mean of all points assigned to that cluster).
+  \item For each point, assign that point to whichever cluster is closest (by
+Euclidean distance to the cluster centroid).
+  \item For each cluster, update the centroid (the arithmetic mean of all
+points assigned to that cluster).
 \end{enumerate}
+Distributed computation is straightforward: each process holds a portion of the
+points and computes cluster assignments and centroid contributions for each
+point. At each iteration, a master process collects all centroid contributions,
+computes the aggregates, and communicates the updated values to all workers.
 
-Distributed computation is straightforward: each process holds a portion of the points and computes cluster assignments and centroid contributions for each point. 
+\begin{lstlisting}
+  for(iter $\lA$ 0 until maxIter if !converged()) {
+    finish {
+      for (p $\lA$ places) {
+        async {
+          val placeResult = at(p) { matchPoints() }
+          synchronized {
+            for (i $\lA$ 0 until C; j $\lA$ 0 until D) {
+              newCentroids(i)(j) += placeResult.centroids(i)(j)
+            }
+            for (j $\lA$ 0 until C) {
+              newCounts(j) += placeResult.counts(j)
+            }
+          }
+    }}}
 
-Problem definition. Why it's ``easy'' to distribute.
+    newCentroids /= newCounts
+    centroids = newCentroids
+    counts = 0
+  }
+\end{lstlisting}
 
-Contrast with actors: messaging and communication is implicit vs. explicit.
-
-Shared memory is not idiomatic in Akka, whereas embraced in APGAS. Ex: updating
-the central array. This means we end up with code that requires concurrency
-control.
-
-Here we just used \lstinline{synchronized}. If Java had a proper
-implementation or arrays with atomic increments for floats (analogous to
-\lstinline{AtomicIntegerArray}), we could also just use that.
+% Problem definition. Why it's ``easy'' to distribute.
+% 
+% Contrast with actors: messaging and communication is implicit vs. explicit.
+% 
+% Shared memory is not idiomatic in Akka, whereas embraced in APGAS. Ex: updating
+% the central array. This means we end up with code that requires concurrency
+% control.
+% 
+% Here we just used \lstinline{synchronized}. If Java had a proper
+% implementation or arrays with atomic increments for floats (analogous to
+% \lstinline{AtomicIntegerArray}), we could also just use that.

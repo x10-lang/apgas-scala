@@ -71,7 +71,12 @@ object UTSAPGAS {
     val thieves : ConcurrentLinkedQueue[Place] = new ConcurrentLinkedQueue[Place]()
     val lifeline : AtomicBoolean = new AtomicBoolean(home.id != placeCount - 1)
   
-    var state : Int = -2 // -2: inactive, -1: running, p: stealing from p
+    sealed trait State
+    case object Idle extends State
+    case object Work extends State
+    case class Wait(stealingFrom : Int) extends State
+    
+    var state : State = Idle
 
     def seed(s : Int, d : Int) : Unit = {
       bag.initialize(md, s, d)
@@ -79,7 +84,7 @@ object UTSAPGAS {
 
     def run() : Unit = {
       synchronized {
-        state = -1
+        state = Work
       }
           
       while (bag.size > 0) {
@@ -95,7 +100,7 @@ object UTSAPGAS {
       }
           
       synchronized {
-        state = -2
+        state = Idle
       }
           
       distribute()
@@ -117,7 +122,7 @@ object UTSAPGAS {
       }
           
       synchronized {
-        state = p
+        state = Wait(p)
       }
           
       uncountedAsyncAt(place(p)) {
@@ -125,7 +130,7 @@ object UTSAPGAS {
       }
           
       synchronized {
-        while (state >= 0) {
+        while (state.isInstanceOf[Wait]) {
           try {
             wait()
           } catch {
@@ -137,7 +142,7 @@ object UTSAPGAS {
     
     def request(p : Place) : Unit = {
       synchronized {
-        if (state == -1) {
+        if (state == Work) {
           thieves.add(p)
           return
         }
@@ -156,7 +161,7 @@ object UTSAPGAS {
     
     def deal(p : Place, b : Option[Bag]) : Unit = synchronized {  
       b.foreach(bag.merge(_))
-      state = -1
+      state = Work
       notifyAll()
     }
     

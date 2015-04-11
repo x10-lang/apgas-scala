@@ -7,7 +7,7 @@ generator \cite{lcpc06}. Each node in the tree is identified by a 160-bit hash.
 The UTS specification describes several cryptographic laws for computing the number of children of a node and their hashes.
 The intent is to synthesize trees that are deterministic but unbalanced in unpredictable ways. 
 
-A sequential implementation of UTS is straightforward. The code maintains a work list of pending nodes to visit, initialized with the root node of the tree. It repeatedly pops a node from the work list, computes the list of children for this node, and adds them to the work list, while keeping the count of the nodes processed so far. An empty work list signals the termination of the traversal.
+A sequential implementation of UTS is straightforward: the code maintains a work list of pending nodes to visit, initialized with the root node of the tree. It repeatedly pops a node from the work list, computes the list of children for this node, and adds them to the work list, while keeping the count of the nodes processed so far. An empty work list signals the termination of the traversal.
 In contrast, a parallel and distributed implementation of UTS is a challenge because of imbalance.
 We implement distributed work stealing with lifelines \cite{ppopp11}.
 
@@ -16,22 +16,26 @@ Each worker maintains a work list of pending nodes to visit and count of nodes a
 
 \paragraph{State Machine.} Each worker can be in one of three states:
 \begin{itemize}
-\item work: the worker is processing nodes from its work list;
-\item wait: the worker is attempting to steal nodes from a random victim and waiting for the result;
-\item idle: the worker has signaled its lifeline and stopped.
+\item \lstinline{work}: the worker is processing nodes from its work list;
+\item \lstinline{wait}: the worker is attempting to steal nodes from a random victim and waiting for the result;
+\item \lstinline{idle}: the worker has signaled its lifeline and stopped.
 \end{itemize}
-Figure~\ref{fig:uts-state} shows these states and the possible transitions as a graph. The transitions---the edges---are annotated with the events associated with them. E.g., the ``nodeal/lifelinereq'' transition from the wait state to the idle state denotes that this transition takes places upon receiving the ``nodeal'' message and involves sending the ``lifelinereq'' message.
-
+Figure~\ref{fig:uts-state} shows these states and the possible transitions as a
+graph. The transitions---the edges---are annotated with the events associated
+with them. E.g., the \lstinline{NoDeal}/\lstinline{LifelineReq} transition from
+the wait state to the idle state denotes that this transition takes places upon
+receiving the \lstinline{NoDeal} message and involves sending the \lstinline{LifelineReq}
+message.
 \begin{figure}
 \centering
 \begin{tikzpicture}[scale=0.15]
 \tikzstyle{every node}+=[inner sep=0pt]
 \draw [black] (20.9,-23.3) circle (3);
-\draw (20.9,-23.3) node {idle};
+\draw (20.9,-23.3) node {\lstinline{idle}};
 \draw [black] (42.3,-12.3) circle (3);
-\draw (42.3,-12.3) node {work};
+\draw (42.3,-12.3) node {\lstinline{work}};
 \draw [black] (44.7,-29.1) circle (3);
-\draw (44.7,-29.1) node {wait};
+\draw (44.7,-29.1) node {\lstinline{wait}};
 \draw [black] (22.9,-21.066) arc (135.27934:99.12868:29.75);
 \fill [black] (39.32,-12.63) -- (38.45,-12.26) -- (38.61,-13.25);
 \draw (25.2,-15.02) node [above] {\lstinline{LifelineDeal}/};

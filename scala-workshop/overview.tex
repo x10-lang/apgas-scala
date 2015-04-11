@@ -12,7 +12,6 @@ A task can spawn local and remote tasks, i.e., tasks to be executed in the same 
 A local task shares the heap of the parent task. A remote task executes on a snapshot of the parent task's heap captured when the task is spawned. A task can instantiate \emph{global references} to objects in its heap to work around the capture semantics.
 Global references are copied as part of the snapshot but not the target objects. A global reference can only be dereferenced
 at the place of the target object where it resolves to the original object.
-% FIXME how does one describe GlobalRef.forPlaces in these words?
 
 A task can wait for the termination of all the tasks transitively spawned from it.
 Thanks to global references, remote tasks, and termination control,
@@ -33,9 +32,10 @@ immediately. It is therefore the primitive construct for both \emph{concurrency}
 The \lstinline{finish} construct detects termination: an invocation of
 \lstinline{finish} will execute its body and then block until all nested invocations
 of \lstinline{asyncAt} have completed. The set of \lstinline{asyncAt} invocations
-that are controlled includes all recursive invocations, including all remote
+that are controlled comprises all recursive invocations, including all remote
 ones. This makes \lstinline{finish} a powerful contribution of \apgas.
-There is an implicit \lstinline{finish} surrounding the main method of the program (which is itself an implicit task).
+There is an implicit \lstinline{finish} surrounding the main method of the program (which is itself implicitly a task).
+If an asynchronous task must not be ignored by the enclosing \lstinline{finish}, we spawn it with \lstinline{uncountedAsyncAt}.
 
 Because spawning local tasks is so common, the library defines an optimized version of
 \lstinline{asyncAt} for this purpose with the signature:
@@ -63,11 +63,10 @@ desired return value is available. For this purpose, the library defines:
 \begin{lstlisting}
   def at[T:Serialization](place: Place)(body: $\RA$T) : T
 \end{lstlisting}
-(We discuss the \lstinline{Serialization} type class in
-Section~\ref{sec:serialization}.)
+% (We discuss the \lstinline{Serialization} type class in
+% Section~\ref{sec:serialization}.)
 
 \paragraph{Messages and place-local memory.}
-
 Transferring data between places is achieved by capturing the relevant part of
 the sender's heap in the body of the \lstinline{asyncAt} block. In many
 situations, however, it is convenient to refer to a section of the memory that
@@ -110,7 +109,7 @@ first enclosing \lstinline{finish}, which throws an exception. The critical
 property that APGAS maintains is \emph{happens-before invariance}: failures
 cannot introduce execution orderings that are not possible under regular
 execution conditions \cite{ppopp14,ecoop14}. Detailed examples of resilient
-benchmarks are beyond the scope of this short paper.
+benchmarks are beyond the scope of this paper.
 
 % \subsection{Similarities and Differences with Futures and Actors}
 % 
@@ -124,6 +123,5 @@ benchmarks are beyond the scope of this short paper.
 % 
 % Async at: active messages: get executed "immediately", actor messages handled one-by-one.
 % 
-
 In the following sections, we highlight some \apgas patterns in two concrete
-benchmarks, and provide contrast with the familiar actor paradigm of Akka.
+benchmarks, and provide contrast with the familiar actor paradigm as expressed in Akka.

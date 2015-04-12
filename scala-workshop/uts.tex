@@ -33,79 +33,96 @@ the node counts is computed at that point.
 \item \lstinline{wait}: the worker is attempting to steal nodes from a random victim and waiting for the result;
 \item \lstinline{idle}: the worker has signaled its lifeline and stopped.
 \end{itemize}
-Figure~\ref{fig:uts-state} shows these states and the possible transitions as a
-graph. The transitions---the edges---are annotated with the events associated
-with them. E.g., the \lstinline{NoDeal}/\lstinline{LifelineReq} transition from
-the wait state to the idle state denotes that this transition takes places upon
-receiving the \lstinline{NoDeal} message and involves sending the \lstinline{LifelineReq}
-message.
-\begin{figure}
-\centering
-\begin{tikzpicture}[scale=0.15]
-\tikzstyle{every node}+=[inner sep=0pt]
-\draw [black] (16.5,-13.6) circle (3);
-\draw (16.5,-13.6) node {\lstinline{idle}};
-\draw [black] (35.5,-13.6) circle (3);
-\draw (35.5,-13.6) node {\lstinline{work}};
-\draw [black] (54.6,-13.6) circle (3);
-\draw (54.6,-13.6) node {\lstinline{wait}};
-\draw [black] (19.093,-12.1) arc (114.8182:65.1818:16.454);
-\fill [black] (32.91,-12.1) -- (32.39,-11.31) -- (31.97,-12.22);
-\draw (26,-10.08) node [above] {/\lstinline{LifelineDeal}};
-\draw [black] (38.101,-12.113) arc (114.61614:65.38386:16.684);
-\fill [black] (52,-12.11) -- (51.48,-11.32) -- (51.06,-12.23);
-\draw (45.05,-10.1) node [above] {\lstinline{Steal}/};
-\draw [black] (38.443,-13.022) arc (99.06897:80.93103:41.916);
-\fill [black] (38.44,-13.02) -- (39.31,-13.39) -- (39.15,-12.4);
-\draw (45.05,-13.1) node [below] {/\lstinline{Deal}};
-\draw [black] (51.81,-14.703) arc (-70.22137:-109.77863:48.053);
-\fill [black] (19.29,-14.7) -- (19.87,-15.44) -- (20.21,-14.5);
-\draw (35.55,-18.04) node [below] {\lstinline{LifelineReq}/\lstinline{NoDeal}};
-\draw [black] (9.3,-13.6) -- (13.5,-13.6);
-\fill [black] (13.5,-13.6) -- (12.7,-13.1) -- (12.7,-14.1);
-\end{tikzpicture}
-\caption{State diagram for UTS workers.\label{fig:uts-state}}
-\end{figure}
-\paragraph{Implementation in \apgas.}
+% Figure~\ref{fig:uts-state} shows these states and the possible transitions as a
+% graph. The transitions---the edges---are annotated with the events associated
+% with them. E.g., the \lstinline{NoDeal}/\lstinline{LifelineReq} transition from
+% the wait state to the idle state denotes that this transition takes places upon
+% receiving the \lstinline{NoDeal} message and involves sending the \lstinline{LifelineReq}
+% message.
+% \begin{figure}
+% \centering
+% \begin{tikzpicture}[scale=0.15]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (16.5,-13.6) circle (3);
+% \draw (16.5,-13.6) node {\lstinline{idle}};
+% \draw [black] (35.5,-13.6) circle (3);
+% \draw (35.5,-13.6) node {\lstinline{work}};
+% \draw [black] (54.6,-13.6) circle (3);
+% \draw (54.6,-13.6) node {\lstinline{wait}};
+% \draw [black] (19.093,-12.1) arc (114.8182:65.1818:16.454);
+% \fill [black] (32.91,-12.1) -- (32.39,-11.31) -- (31.97,-12.22);
+% \draw (26,-10.08) node [above] {/\lstinline{LifelineDeal}};
+% \draw [black] (38.101,-12.113) arc (114.61614:65.38386:16.684);
+% \fill [black] (52,-12.11) -- (51.48,-11.32) -- (51.06,-12.23);
+% \draw (45.05,-10.1) node [above] {\lstinline{Steal}/};
+% \draw [black] (38.443,-13.022) arc (99.06897:80.93103:41.916);
+% \fill [black] (38.44,-13.02) -- (39.31,-13.39) -- (39.15,-12.4);
+% \draw (45.05,-13.1) node [below] {/\lstinline{Deal}};
+% \draw [black] (51.81,-14.703) arc (-70.22137:-109.77863:48.053);
+% \fill [black] (19.29,-14.7) -- (19.87,-15.44) -- (20.21,-14.5);
+% \draw (35.55,-18.04) node [below] {\lstinline{LifelineReq}/\lstinline{NoDeal}};
+% \draw [black] (9.3,-13.6) -- (13.5,-13.6);
+% \fill [black] (13.5,-13.6) -- (12.7,-13.1) -- (12.7,-14.1);
+% \end{tikzpicture}
+% \caption{State diagram for UTS workers.\label{fig:uts-state}}
+% \end{figure}
 
-We illustrate below the handling of the \{ \lstinline{Steal}, \lstinline{Deal} \} pair of messages in the \apgas implementation.
+\paragraph{Implementation in \apgas.} We focus here on two aspects of the
+implementation: active messages and termination. Figure~\ref{fig:utsapgas}
+shows a fraction of the \lstinline{Worker} class.
+%  Each worker holds a boolean
+% indicating whether the lifeline has been activated by the previous worker in
+% the ring.
+When a worker has run out of work and stealing has failed, the protocol
+dictates that it goes into \lstinline{idle} mode and signals the next worker in
+the ring that it has done so. This corresponds in the code to the completion of
+the \lstinline{run()} task by the invocation of \lstinline{lifelineReq()}. This
+second method implements an active message pattern: the execution of
+\lstinline{lifeline.set(true)} happens at place \lstinline{nextInRing}. This
+works because the implicit \lstinline{this} captured in the closure has type
+\lstinline{PlaceLocal} and is therefore resolved to the \lstinline{Worker}
+instance unique to the destination place.
+
+\begin{figure}
 \begin{lstlisting}
 class Worker($\ldots$) extends PlaceLocal {
-  val thieves: ConcurrentLinkedQueue[Place] = $\ldots$
   val workList: WorkList = $\ldots$
+  val lifeline: AtomicBoolean = $\ldots$
   $\ldots$
-  def steal() : Unit = {
-    val thief: Place = here
-    val victim: Place = $\ldots$ // pick randomly
-    synchronized { state = Wait(p) }
-    uncountedAsyncAt(victim) {
-      thieves.add(thief)
-    }
-    synchronized { while (state.isWait) { wait() } }
-  }
-  def distribute() : Unit = {
-    $\ldots$ 
-    while({ p = thieves.poll(); p != null}) {
-      val wl = workList.split()
-
-      uncountedAsyncAt(p) {
-        synchronized {
-          workList.merge(wl)
-          state = Work
-          notifyAll()
-        }
-      }
-    }
-  }
+  def run() : Unit = {
+    synchronized { state = Work }
+    while ($\ldots$) {
+      /* Work while work is available and/or stealing
+         is successful. */ $\ldots$ }
+    synchronized { state = Idle }
+    lifelineReq() }
+  def lifelineReq() : Unit = {
+    val nextInRing: Place = $\ldots$
+    asyncAt(nextInRing) { lifeline.set(true) } }
+  def lifelineDeal(work: Worklist) : Unit = {
+    workList.merge(Worklist)
+    run() }
 }
 \end{lstlisting}
+\caption{Selected code structure for UTS in \apgas.\label{fig:utsapgas}}
+\end{figure}
 
-\paragraph{Distributed Termination.} Distributed termination detection is notoriously difficult to implement correctly and efficiently.
-For instance in UTS, observing that all workers are idle does not guarantee that the traversal is complete as messages containing nodes to process might still be in flight. Thanks to \lstinline{finish}, an entire class of hard-to-reproduce data races is ruled out by construction in APGAS.
-A combination of static and dynamic analyses can bring down the cost of termination detection~\cite{TardieuETAL14X10ApgasAtPetascale}. 
+\paragraph{Distributed Termination.} Distributed termination detection is
+notoriously difficult to implement correctly and efficiently.  For instance in
+UTS, observing that all workers are idle does not guarantee that the traversal
+is complete as messages containing nodes to process might still be in flight.
+Thanks to \lstinline{finish}, an entire class of hard-to-reproduce data races
+is ruled out by construction in APGAS.  A combination of static and dynamic
+analyses can bring down the cost of termination
+detection~\cite{TardieuETAL14X10ApgasAtPetascale}. 
 
-APGAS provides two state-of-the-art \lstinline{finish} implementations for fault-tolerant and non-fault-tolerant instantiations of the library. The core algorithm uses a distributed array of counters akin to the X10 implementation. Each place maintains the count of tasks that completed locally and separate counts for each place where it spawned tasks. These arrays of counters are pushed to the place of the task waiting on the \lstinline{finish}. Termination is signaled when all the sums of the per-place task counts are zero.
-
+APGAS provides two state-of-the-art \lstinline{finish} implementations for
+fault-tolerant and non-fault-tolerant instantiations of the library. The core
+algorithm uses a distributed array of counters akin to the X10 implementation.
+Each place maintains the count of tasks that completed locally and separate
+counts for each place where it spawned tasks. These arrays of counters are
+pushed to the place of the task waiting on the \lstinline{finish}. Termination
+is signaled when all the sums of the per-place task counts are zero.
 
 % TODO
 % 
@@ -134,12 +151,12 @@ APGAS provides two state-of-the-art \lstinline{finish} implementations for fault
 32 worker actors, 3) Akka implementation on 32 processes, each with 1 worker
 actor.\footnote{As places in \apgas are currently only realized as separate
 processes, configuration 3) is closer in terms of communication constraints.}
-We used \lstinline{akka-remote} for configuration 3), and the flexibility of
-the actor model means that the distribution of workers per process is isolated
-to a single invocation of \lstinline{.withDeploy}. The configurations achieved
-269.4Mn/s, 286.8Mn/s, and 274.2Mn/s, respectively. This shows that the \apgas
-code comes within 98\% and 93\% of the performance of the multi-process and
-single-process Akka configurations, respectively.
+We used \lstinline{akka-remote} for 3), and the flexibility of the actor model
+means that the distribution of workers per process is isolated to a single
+invocation of \lstinline{.withDeploy}. The configurations achieved 269.4Mn/s,
+286.8Mn/s, and 274.2Mn/s, respectively. This shows that the \apgas code comes
+within 98\% and 93\% of the performance of the multi-process and single-process
+Akka configurations, respectively.
 
 %UTSAPGAS 32 places, 1 worker/place, depth 15
 %[uts-apgas-32] depth: 15, performance: 4230646601/15.617225935 = 270.8961641848719M nodes/s

@@ -82,7 +82,6 @@ second method implements an active message pattern: the execution of
 works because the implicit \lstinline{this} captured in the closure has type
 \lstinline{PlaceLocal} and is therefore resolved to the \lstinline{Worker}
 instance unique to the destination place.
-
 \begin{figure}
 \begin{lstlisting}
 class Worker($\ldots$) extends PlaceLocal {
@@ -106,23 +105,49 @@ class Worker($\ldots$) extends PlaceLocal {
 \end{lstlisting}
 \caption{Selected code structure for UTS in \apgas.\label{fig:utsapgas}}
 \end{figure}
+Reactivation of a worker that has gone idle is achieved in a similar way; its
+lifeline runs:
+\begin{lstlisting}
+  asyncAt(prevInRing) { lifelineDeal(newWork) }
+\end{lstlisting}
+This, as shown in Figure~\ref{fig:utsapgas}, spawns a task that enters
+\lstinline{run()}.
 
-\paragraph{Distributed Termination.} Distributed termination detection is
-notoriously difficult to implement correctly and efficiently.  For instance in
-UTS, observing that all workers are idle does not guarantee that the traversal
-is complete as messages containing nodes to process might still be in flight.
-Thanks to \lstinline{finish}, an entire class of hard-to-reproduce data races
-is ruled out by construction in APGAS.  A combination of static and dynamic
-analyses can bring down the cost of termination
-detection~\cite{TardieuETAL14X10ApgasAtPetascale}. 
+Distributed termination detection is notoriously difficult to implement
+correctly and efficiently. For instance in UTS, observing that all workers are
+idle does not guarantee that the traversal is complete as messages containing
+nodes to process might still be in flight. In our code, however, a single
+invocation of \lstinline{finish} solves the problem.
+We invoke our distributed computation from the first place as
+\begin{lstlisting}
+  finish { worker.run() }
+\end{lstlisting}
+As shown in Figure~\ref{fig:utsapgas}, when a worker goes into \lstinline{idle}
+mode, the corresponding task completes. Since \lstinline{finish} guards all
+tasks transitively, it terminates exactly when the last work item has been
+exhausted.
 
-APGAS provides two state-of-the-art \lstinline{finish} implementations for
-fault-tolerant and non-fault-tolerant instantiations of the library. The core
-algorithm uses a distributed array of counters akin to the X10 implementation.
-Each place maintains the count of tasks that completed locally and separate
-counts for each place where it spawned tasks. These arrays of counters are
-pushed to the place of the task waiting on the \lstinline{finish}. Termination
-is signaled when all the sums of the per-place task counts are zero.
+% APGAS provides two state-of-the-art \lstinline{finish} implementations for
+% fault-tolerant and non-fault-tolerant instantiations of the library. The core
+% algorithm uses a distributed array of counters akin to the X10 implementation.
+% Each place maintains the count of tasks that completed locally and separate
+% counts for each place where it spawned tasks. These arrays of counters are
+% pushed to the place of the task waiting on the \lstinline{finish}. Termination
+% is signaled when all the sums of the per-place task counts are zero.
+
+\paragraph{Implementation with Akka.} Because Akka embraces explicit messaging
+and actors that act as state machines, the code follows the protocol
+description very closely. For instance, the code corresponding to a worker
+being reactivated by its lifeline is:
+\begin{lstlisting}
+  case LifelineDeal(wl) =>
+    workList.merge(wl); become(working); self ! Work
+\end{lstlisting}
+A significant challenge, however, lies in detection termination. We implemented
+a protocol where workers that go into \lstinline{idle} mode additionally
+communicate to a central worker how many times they have sent lifeline
+messages, and by aggregating all counts, the central worker can detect when no
+messages are in flight.
 
 % TODO
 % 

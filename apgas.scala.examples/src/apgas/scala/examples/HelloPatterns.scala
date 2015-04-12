@@ -49,7 +49,5 @@ object HelloPatterns {
     }
     
     println(fib(10))
-    
-    
   }
 }

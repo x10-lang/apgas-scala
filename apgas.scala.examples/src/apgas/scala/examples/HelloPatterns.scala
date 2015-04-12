@@ -26,7 +26,7 @@ object HelloPatterns {
     
     import _root_.apgas.scala.util._
     
-    val r = GlobalRef.forPlaces(places) { 42 }
+    val r = GlobalRef.forPlaces(places) { 42 + here.id }
     
     val total = places.foldLeft(0) { (i,p) =>
       i + at(p) { r() }
@@ -49,5 +49,7 @@ object HelloPatterns {
     }
     
     println(fib(10))
+    
+    
   }
 }

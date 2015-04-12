@@ -30,31 +30,85 @@ message.
 \centering
 \begin{tikzpicture}[scale=0.15]
 \tikzstyle{every node}+=[inner sep=0pt]
-\draw [black] (20.9,-23.3) circle (3);
-\draw (20.9,-23.3) node {\lstinline{idle}};
-\draw [black] (42.3,-12.3) circle (3);
-\draw (42.3,-12.3) node {\lstinline{work}};
-\draw [black] (44.7,-29.1) circle (3);
-\draw (44.7,-29.1) node {\lstinline{wait}};
-\draw [black] (22.9,-21.066) arc (135.27934:99.12868:29.75);
-\fill [black] (39.32,-12.63) -- (38.45,-12.26) -- (38.61,-13.25);
-\draw (25.2,-15.02) node [above] {\lstinline{LifelineDeal}/};
-%\draw [black] (43.382,-9.514) arc (186.50322:-101.49678:2.25);
-%\fill [black] (45.17,-11.46) -- (46.02,-11.87) -- (45.91,-10.88);
-\draw [black] (44.023,-14.75) arc (29.69026:-13.43006:15.827);
-\fill [black] (45.67,-26.27) -- (46.34,-25.6) -- (45.37,-25.37);
-\draw (46.63,-20.18) node [right] {/\lstinline{Steal}};
-\draw [black] (42.903,-26.704) arc (-148.86241:-194.87738:14.991);
-\fill [black] (41.25,-15.1) -- (40.56,-15.75) -- (41.52,-16);
-\draw (40.2,-21.24) node [left] {\lstinline{Deal}/};
-\draw [black] (41.852,-30.034) arc (-75.95772:-131.43403:20.846);
-\fill [black] (23,-25.44) -- (23.27,-26.34) -- (23.93,-25.59);
-\draw (26.55,-31.11) node [below] {\lstinline{NoDeal}/\lstinline{LifelineReq}};
-\draw [black] (13.7,-23.3) -- (17.9,-23.3);
-\fill [black] (17.9,-23.3) -- (17.1,-22.8) -- (17.1,-23.8);
+\draw [black] (16.5,-13.6) circle (3);
+\draw (16.5,-13.6) node {\lstinline{idle}};
+\draw [black] (35.5,-13.6) circle (3);
+\draw (35.5,-13.6) node {\lstinline{work}};
+\draw [black] (54.6,-13.6) circle (3);
+\draw (54.6,-13.6) node {\lstinline{wait}};
+\draw [black] (19.093,-12.1) arc (114.8182:65.1818:16.454);
+\fill [black] (32.91,-12.1) -- (32.39,-11.31) -- (31.97,-12.22);
+\draw (26,-10.08) node [above] {/\lstinline{LifelineDeal}};
+\draw [black] (38.101,-12.113) arc (114.61614:65.38386:16.684);
+\fill [black] (52,-12.11) -- (51.48,-11.32) -- (51.06,-12.23);
+\draw (45.05,-10.1) node [above] {\lstinline{Steal}/};
+\draw [black] (38.443,-13.022) arc (99.06897:80.93103:41.916);
+\fill [black] (38.44,-13.02) -- (39.31,-13.39) -- (39.15,-12.4);
+\draw (45.05,-13.1) node [below] {/\lstinline{Deal}};
+\draw [black] (51.81,-14.703) arc (-70.22137:-109.77863:48.053);
+\fill [black] (19.29,-14.7) -- (19.87,-15.44) -- (20.21,-14.5);
+\draw (35.55,-18.04) node [below] {\lstinline{LifelineReq}/\lstinline{NoDeal}};
+\draw [black] (9.3,-13.6) -- (13.5,-13.6);
+\fill [black] (13.5,-13.6) -- (12.7,-13.1) -- (12.7,-14.1);
 \end{tikzpicture}
+% \begin{tikzpicture}[scale=0.15]
+% \tikzstyle{every node}+=[inner sep=0pt]
+% \draw [black] (20.9,-23.3) circle (3);
+% \draw (20.9,-23.3) node {\lstinline{idle}};
+% \draw [black] (42.3,-12.3) circle (3);
+% \draw (42.3,-12.3) node {\lstinline{work}};
+% \draw [black] (44.7,-29.1) circle (3);
+% \draw (44.7,-29.1) node {\lstinline{wait}};
+% \draw [black] (22.9,-21.066) arc (135.27934:99.12868:29.75);
+% \fill [black] (39.32,-12.63) -- (38.45,-12.26) -- (38.61,-13.25);
+% \draw (25.2,-15.02) node [above] {\lstinline{LifelineDeal}/};
+% %\draw [black] (43.382,-9.514) arc (186.50322:-101.49678:2.25);
+% %\fill [black] (45.17,-11.46) -- (46.02,-11.87) -- (45.91,-10.88);
+% \draw [black] (44.023,-14.75) arc (29.69026:-13.43006:15.827);
+% \fill [black] (45.67,-26.27) -- (46.34,-25.6) -- (45.37,-25.37);
+% \draw (46.63,-20.18) node [right] {/\lstinline{Steal}};
+% \draw [black] (42.903,-26.704) arc (-148.86241:-194.87738:14.991);
+% \fill [black] (41.25,-15.1) -- (40.56,-15.75) -- (41.52,-16);
+% \draw (40.2,-21.24) node [left] {\lstinline{Deal}/};
+% \draw [black] (41.852,-30.034) arc (-75.95772:-131.43403:20.846);
+% \fill [black] (23,-25.44) -- (23.27,-26.34) -- (23.93,-25.59);
+% \draw (26.55,-31.11) node [below] {\lstinline{NoDeal}/\lstinline{LifelineReq}};
+% \draw [black] (13.7,-23.3) -- (17.9,-23.3);
+% \fill [black] (17.9,-23.3) -- (17.1,-22.8) -- (17.1,-23.8);
+% \end{tikzpicture}
 \caption{State diagram for UTS workers.\label{fig:uts-state}}
 \end{figure}
+We illustrate below the handling of the \{ \lstinline{Steal}, \lstinline{Deal} \} pair of messages in the \apgas implementation.
+\begin{lstlisting}
+class Worker($\ldots$) extends PlaceLocal {
+  val thieves: ConcurrentLinkedQueue[Place] = $\ldots$
+  val workList: WorkList = $\ldots$
+  $\ldots$
+  def steal() : Unit = {
+    val thief: Place = here
+    val victim: Place = $\ldots$ // pick randomly
+    synchronized { state = Wait(p) }
+    uncountedAsyncAt(victim) {
+      thieves.add(thief)
+    }
+    synchronized { while (state.isWait) { wait() } }
+  }
+  def distribute() : Unit = {
+    $\ldots$ 
+    while({ p = thieves.poll(); p != null}) {
+      val wl = workList.split()
+
+      uncountedAsyncAt(p) {
+        synchronized {
+          workList.merge(wl)
+          state = Work
+          notifyAll()
+        }
+      }
+    }
+  }
+}
+\end{lstlisting}
 
 \paragraph{Distributed Termination.} Distributed termination detection is notoriously difficult to implement correctly and efficiently.
 For instance in UTS, observing that all workers are idle does not guarantee that the traversal is complete as messages containing nodes to process might still be in flight. Thanks to \lstinline{finish}, an entire class of hard-to-reproduce data races is ruled out by construction in APGAS.
@@ -63,22 +117,22 @@ A combination of static and dynamic analyses can bring down the cost of terminat
 APGAS provides two state-of-the-art \lstinline{finish} implementations for fault-tolerant and non-fault-tolerant instantiations of the library. The core algorithm uses a distributed array of counters akin to the X10 implementation. Each place maintains the count of tasks that completed locally and separate counts for each place where it spawned tasks. These arrays of counters are pushed to the place of the task waiting on the \lstinline{finish}. Termination is signaled when all the sums of the per-place task counts are zero.
 
 
-TODO
-
-Common implementation of WorkList. Show interface. Explain mutability and
-ownership are for performance.
-
-Akka: implementation using vanilla actors (no akka-fsm). Work is split up by
-sending \lstinline{Work} messages to oneself. State transitions are implemented
-using \lstinline{become}.
-
-Termination is difficult.
-
-UTS: three problems, three solutions.
-
-UTS \apgas: concurrency control implemented as multiple paradigms (synchronized
-data access, global invariants, active messages). Concurrency is more
-fine-grained.
+% TODO
+% 
+% Common implementation of WorkList. Show interface. Explain mutability and
+% ownership are for performance.
+% 
+% Akka: implementation using vanilla actors (no akka-fsm). Work is split up by
+% sending \lstinline{Work} messages to oneself. State transitions are implemented
+% using \lstinline{become}.
+% 
+% Termination is difficult.
+% 
+% UTS: three problems, three solutions.
+% 
+% UTS \apgas: concurrency control implemented as multiple paradigms (synchronized
+% data access, global invariants, active messages). Concurrency is more
+% fine-grained.
 
 
 % Scala performance

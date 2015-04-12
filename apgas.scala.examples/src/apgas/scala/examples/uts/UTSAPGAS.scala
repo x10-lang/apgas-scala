@@ -25,10 +25,8 @@ object UTSAPGAS {
     }
     
     {
-      // initialize uts and place failure handler in each place
-      val worker = PlaceLocal.forPlaces(places) {
-        new Worker()
-      }
+      // initialize a worker in each place
+      val worker = PlaceLocal.forPlaces(places) { new Worker() }
       
       println("Warmup...")
       worker.seed(seed, maxDepth - 2)
@@ -36,7 +34,7 @@ object UTSAPGAS {
     }
     
     {
-      // initialize uts and place failure handler in each place
+      // initialize a worker in each place
       val worker = PlaceLocal.forPlaces(places) { new Worker() }
       println("Starting...");
       val t0 = System.nanoTime()
@@ -147,10 +145,9 @@ object UTSAPGAS {
           return
         }
       }
-          
-      val h = home
+      
       uncountedAsyncAt(p) {
-        deal(h, None)
+        deal(None)
       }
     }
     
@@ -159,7 +156,7 @@ object UTSAPGAS {
       run()
     }
     
-    def deal(p : Place, b : Option[Bag]) : Unit = synchronized {  
+    def deal(b : Option[Bag]) : Unit = synchronized {  
       b.foreach(bag.merge(_))
       state = Work
       notifyAll()
@@ -180,11 +177,10 @@ object UTSAPGAS {
       }
           
       while ({ p = thieves.poll(); p != null}) {
-        val h = home
         val b = bag.split()
               
         uncountedAsyncAt(p) {
-          deal(h, b)
+          deal(b)
         }
       }
     }

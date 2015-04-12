@@ -1,16 +1,16 @@
-\section{Unbalanced Tree Search}
+\section{Unbalanced Tree Search (UTS)}
 \label{sec:uts}
 
-The Unbalanced Tree Search benchmark (UTS) measures the rate of traversal of a
+The UTS benchmark measures the rate of traversal of a
 tree generated on the fly using a splittable random number generator
 \cite{lcpc06}. The problem specification describes several cryptographic laws
-for computing the number of children of a node and their hashes. This results
-in trees that are deterministic but unbalanced in unpredictable ways. 
+for computing the number of children of a node and their hashes. This results in
+trees that are deterministic but unbalanced in unpredictable ways. 
 
 A sequential implementation of UTS is straightforward: the code maintains a
 work list of nodes to expand, and repeatedly pops one and adds its children to
-the list. It terminates when the list is empty, and returns the number of
-popped elements. In contrast, a parallel and distributed implementation of UTS
+the list. It terminates when the list is empty. %, and returns the number of popped elements.
+In contrast, a parallel and distributed implementation of UTS
 is a challenge because of imbalance. We implement distributed work stealing
 with lifelines \cite{ppopp11}.
 
@@ -27,12 +27,10 @@ root node of the traversal. The traversal is complete when all workers have
 stopped and there are no deal messages from a lifeline in flight. The sum of
 the node counts is computed at that point.
 
-\paragraph{State Machine.} Each worker can be in one of three states:
-\begin{itemize}
-\item \lstinline{work}: the worker is processing nodes from its work list;
-\item \lstinline{wait}: the worker is attempting to steal nodes from a random victim and waiting for the result;
-\item \lstinline{idle}: the worker has signaled its lifeline and stopped.
-\end{itemize}
+Each worker can be in one of three states; \lstinline{work}: the worker is processing nodes from its work list,
+\lstinline{wait}: the worker is attempting to steal nodes from a random victim and waiting for the result, and
+\lstinline{idle}: the worker has signaled its lifeline and stopped.
+
 % Figure~\ref{fig:uts-state} shows these states and the possible transitions as a
 % graph. The transitions---the edges---are annotated with the events associated
 % with them. E.g., the \lstinline{NoDeal}/\lstinline{LifelineReq} transition from
@@ -85,23 +83,22 @@ instance unique to the destination place.
 \begin{figure}
 \begin{lstlisting}
 class Worker($\ldots$) extends PlaceLocal {
-  val workList: WorkList = $\ldots$
-  val lifeline: AtomicBoolean = $\ldots$
+  val workList: WorkList $\EQ$ $\ldots$
+  val lifeline: AtomicBoolean $\EQ$ $\ldots$
   $\ldots$
-  def run() : Unit = {
-    synchronized { state = Work }
+  def run() : Unit $\EQ$ {
+    synchronized { state $\EQ$ Work }
     while ($\ldots$) {
       /* Work while work is available and/or stealing
          is successful. */ $\ldots$ }
-    synchronized { state = Idle }
+    synchronized { state $\EQ$ Idle }
     lifelineReq() }
-  def lifelineReq() : Unit = {
-    val nextInRing: Place = $\ldots$
+  def lifelineReq() : Unit $\EQ$ {
     asyncAt(nextInRing) { lifeline.set(true) } }
-  def lifelineDeal(work: Worklist) : Unit = {
+  def lifelineDeal(work: Worklist) : Unit $\EQ$ {
     workList.merge(Worklist)
-    run() }
-}
+    run()
+} }
 \end{lstlisting}
 \caption{Selected code structure for UTS in \apgas.\label{fig:utsapgas}}
 \end{figure}
@@ -140,7 +137,7 @@ and actors that act as state machines, the code follows the protocol
 description very closely. For instance, the code corresponding to a worker
 being reactivated by its lifeline is:
 \begin{lstlisting}
-  case LifelineDeal(wl) =>
+  case LifelineDeal(wl) $\RA$
     workList.merge(wl); become(working); self ! Work
 \end{lstlisting}
 A significant challenge, however, lies in detection termination. We implemented

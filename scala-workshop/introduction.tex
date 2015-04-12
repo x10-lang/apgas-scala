@@ -1,4 +1,4 @@
-\section{Introduction}
+\section*{Introduction}
 
 The APGAS programming model~\cite{amp10}---Asynchronous Partitioned Global Address Space---is a simple but powerful
 model of concurrency and distribution. It combines PGAS with asynchrony.
@@ -7,21 +7,21 @@ In APGAS the computation is further organized into lightweight asynchronous task
 With these, APGAS can express both
 regular and irregular parallelism, message-passing-style and
 active-message-style computations, fork-join and bulk-synchronous
-parallelism.  In contrast to hybrid models like MPI+OpenMP, the same
-constructs underpin both intra- and inter-place concurrency.
+parallelism. % In contrast to hybrid models like MPI+OpenMP, the same
+%constructs underpin both intra- and inter-place concurrency.
 
-The X10 programming language~\cite{oopsla05} augments a familiar imperative, strongly-typed, garbage-collected, object-oriented language with the APGAS model. X10 is implemented with two backends. On the managed backend, X10
-compiles into Java and runs on a cluster of JVMs. On the native backend, X10 compiles into C++ and generates a native binary
-for execution on scale-out systems.
+The X10 programming language~\cite{oopsla05} augments a familiar imperative, strongly-typed, garbage-collected, object-oriented language with the APGAS model.
+% X10 is implemented with two backends. On the managed backend, X10
+% compiles into Java and runs on a cluster of JVMs. On the native backend, X10 compiles into C++ and generates a native binary
+% for execution on scale-out systems.
 X10 and by extension
 \apgas have been used successfully to implement distributed applications
 running across tens of thousands of cores~\cite{TardieuETAL14X10ApgasAtPetascale}.
 The recently developed APGAS library for Java \cite{APGASJava} provides an alternative to X10 for programmers interested in the \apgas model but not willing to buy into a new programming language or development platform, which is not always possible or desirable.
 
 To expose more programmer to APGAS, we propose to realize APGAS as an embedded domain-specific language for Scala. 
-Scala welcomes library-based extensions and has been a pioneer on
-the JVM for alternative concurrency paradigms, notably, the original actor
-library and its more recent successor Akka.
+Scala welcomes library-based extensions and has pioneered alternative concurrency paradigms on the JVM,
+notably, the original actor library \cite{HallerOdersky07ActorsThatUnifyThreadsEvents} and its more recent successor Akka.
 X10 shares ancestry and inspiration with Scala, and the
 facilities in Scala for library-defined language extensions make the code look
 almost exactly like X10 programs.

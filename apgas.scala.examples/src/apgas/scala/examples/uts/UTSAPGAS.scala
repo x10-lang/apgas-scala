@@ -106,7 +106,8 @@ object UTSAPGAS {
     }
     
     def lifelinesteal() : Unit = if (placeCount != 1) {
-      asyncAt(place((home.id + placeCount - 1) % placeCount)) {
+      val nextInRing: Place = place((here.id + places.size - 1) % places.size)
+      asyncAt(nextInRing) {
         lifeline.set(true)
       }
     }

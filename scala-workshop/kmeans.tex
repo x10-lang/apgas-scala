@@ -39,10 +39,8 @@ class LocalData(numPoints: Int) extends Serializable {
   val counts    $\EQ$ Array.ofDim[Int](K)
 }
 val local $\EQ$ GlobalRef.forPlaces(places) { $\ldots$ }
-
 val centroids, newCentroids $\EQ$ Array.ofDim[Float](K, D)
 val newCounts $\EQ$ Array.ofDim[Int](K)
-
 while (!converged()) {
   finish {
     reset(newCentroids); reset(newCounts)

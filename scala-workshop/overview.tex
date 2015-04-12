@@ -35,7 +35,7 @@ of \lstinline{asyncAt} have completed. The set of \lstinline{asyncAt} invocation
 that are controlled comprises all recursive invocations, including all remote
 ones. This makes \lstinline{finish} a powerful contribution of \apgas.
 There is an implicit \lstinline{finish} surrounding the main method of the program (which is itself implicitly a task).
-If an asynchronous task must not be ignored by the enclosing \lstinline{finish}, we spawn it with \lstinline{uncountedAsyncAt}.
+% If an asynchronous task must not be ignored by the enclosing \lstinline{finish}, we spawn it with \lstinline{uncountedAsyncAt}.
 
 Because spawning local tasks is so common, the library defines an optimized version of
 \lstinline{asyncAt} for this purpose with the signature:
@@ -49,10 +49,8 @@ version of a Fibonacci number computation can be expressed as:
     var a, b: Long $\EQ$ 0L
     finish {
       async { a $\EQ$ fib(i $\MI$ 2) }
-      b $\EQ$ fib(i $\MI$ 1)
-    }
-    a $\PL$ b
-  }
+      b $\EQ$ fib(i $\MI$ 1) }
+    a $\PL$ b }
 \end{lstlisting}
 In the code above, each recursive invocation of \lstinline{fib} spawns an
 additional asynchronous task, and \lstinline{finish} blocks until all

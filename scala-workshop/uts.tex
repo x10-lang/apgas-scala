@@ -1,18 +1,31 @@
 \section{Unbalanced Tree Search}
 \label{sec:uts}
 
-The Unbalanced Tree Search benchmark (UTS) measures the rate of traversal of
-a tree generated on the fly using a splittable random number
-generator \cite{lcpc06}. Each node in the tree is identified by a 160-bit hash.
-The UTS specification describes several cryptographic laws for computing the number of children of a node and their hashes.
-The intent is to synthesize trees that are deterministic but unbalanced in unpredictable ways. 
+The Unbalanced Tree Search benchmark (UTS) measures the rate of traversal of a
+tree generated on the fly using a splittable random number generator
+\cite{lcpc06}. The problem specification describes several cryptographic laws
+for computing the number of children of a node and their hashes. This results
+in trees that are deterministic but unbalanced in unpredictable ways. 
 
-A sequential implementation of UTS is straightforward: the code maintains a work list of pending nodes to visit, initialized with the root node of the tree. It repeatedly pops a node from the work list, computes the list of children for this node, and adds them to the work list, while keeping the count of the nodes processed so far. An empty work list signals the termination of the traversal.
-In contrast, a parallel and distributed implementation of UTS is a challenge because of imbalance.
-We implement distributed work stealing with lifelines \cite{ppopp11}.
+A sequential implementation of UTS is straightforward: the code maintains a
+work list of nodes to expand, and repeatedly pops one and adds its children to
+the list. It terminates when the list is empty, and returns the number of
+popped elements. In contrast, a parallel and distributed implementation of UTS
+is a challenge because of imbalance. We implement distributed work stealing
+with lifelines \cite{ppopp11}.
 
-\paragraph{Distributed Algorithm.} A fixed collection of workers collaborate on the traversal. The workers are organized in a ring.
-Each worker maintains a work list of pending nodes to visit and count of nodes already traversed. Each worker primarily processes its own list, following the sequential algorithm. If the list becomes empty, the worker tries to steal nodes from another random worker. If this fails because the victim's work list is empty as well, the worker sends a request to the next worker in the ring---its lifeline---and stops. If this lifeline now has or later obtains nodes to process, it deals a fraction of these nodes to the requester. One work list is initialized with the root node of the traversal. The traversal is complete when all workers have stopped and there are no deal messages from a lifeline in flight. The sum of the node counts is computed at that point.
+\paragraph{Distributed Algorithm.} A fixed collection of workers collaborate on
+the traversal. The workers are organized in a ring. Each worker maintains a
+work list of pending nodes to visit and count of nodes already traversed. Each
+worker primarily processes its own list, following the sequential algorithm. If
+the list becomes empty, the worker tries to steal nodes from another random
+worker. If this fails because the victim's work list is empty as well, the
+worker sends a request to the next worker in the ring---its lifeline---and
+stops. If this lifeline now has or later obtains nodes to process, it deals a
+fraction of these nodes to the requester. One work list is initialized with the
+root node of the traversal. The traversal is complete when all workers have
+stopped and there are no deal messages from a lifeline in flight. The sum of
+the node counts is computed at that point.
 
 \paragraph{State Machine.} Each worker can be in one of three states:
 \begin{itemize}
@@ -51,33 +64,10 @@ message.
 \draw [black] (9.3,-13.6) -- (13.5,-13.6);
 \fill [black] (13.5,-13.6) -- (12.7,-13.1) -- (12.7,-14.1);
 \end{tikzpicture}
-% \begin{tikzpicture}[scale=0.15]
-% \tikzstyle{every node}+=[inner sep=0pt]
-% \draw [black] (20.9,-23.3) circle (3);
-% \draw (20.9,-23.3) node {\lstinline{idle}};
-% \draw [black] (42.3,-12.3) circle (3);
-% \draw (42.3,-12.3) node {\lstinline{work}};
-% \draw [black] (44.7,-29.1) circle (3);
-% \draw (44.7,-29.1) node {\lstinline{wait}};
-% \draw [black] (22.9,-21.066) arc (135.27934:99.12868:29.75);
-% \fill [black] (39.32,-12.63) -- (38.45,-12.26) -- (38.61,-13.25);
-% \draw (25.2,-15.02) node [above] {\lstinline{LifelineDeal}/};
-% %\draw [black] (43.382,-9.514) arc (186.50322:-101.49678:2.25);
-% %\fill [black] (45.17,-11.46) -- (46.02,-11.87) -- (45.91,-10.88);
-% \draw [black] (44.023,-14.75) arc (29.69026:-13.43006:15.827);
-% \fill [black] (45.67,-26.27) -- (46.34,-25.6) -- (45.37,-25.37);
-% \draw (46.63,-20.18) node [right] {/\lstinline{Steal}};
-% \draw [black] (42.903,-26.704) arc (-148.86241:-194.87738:14.991);
-% \fill [black] (41.25,-15.1) -- (40.56,-15.75) -- (41.52,-16);
-% \draw (40.2,-21.24) node [left] {\lstinline{Deal}/};
-% \draw [black] (41.852,-30.034) arc (-75.95772:-131.43403:20.846);
-% \fill [black] (23,-25.44) -- (23.27,-26.34) -- (23.93,-25.59);
-% \draw (26.55,-31.11) node [below] {\lstinline{NoDeal}/\lstinline{LifelineReq}};
-% \draw [black] (13.7,-23.3) -- (17.9,-23.3);
-% \fill [black] (17.9,-23.3) -- (17.1,-22.8) -- (17.1,-23.8);
-% \end{tikzpicture}
 \caption{State diagram for UTS workers.\label{fig:uts-state}}
 \end{figure}
+\paragraph{Implementation in \apgas.}
+
 We illustrate below the handling of the \{ \lstinline{Steal}, \lstinline{Deal} \} pair of messages in the \apgas implementation.
 \begin{lstlisting}
 class Worker($\ldots$) extends PlaceLocal {
@@ -136,6 +126,20 @@ APGAS provides two state-of-the-art \lstinline{finish} implementations for fault
 
 
 % Scala performance
+
+\paragraph{Performance.} We measured the rate of traversal of our Akka and
+\apgas implementations of UTS in millions of nodes per second (Mn/s), using
+32-way parallelism on a 48 core machine. We measured three configurations: 1)
+\apgas implementation on 32 processes, 2) Akka implementation on 1 process with
+32 worker actors, 3) Akka implementation on 32 processes, each with 1 worker
+actor.\footnote{As places in \apgas are currently only realized as separate
+processes, configuration 3) is closer in terms of communication constraints.}
+We used \lstinline{akka-remote} for configuration 3), and the flexibility of
+the actor model means that the distribution of workers per process is isolated
+to a single invocation of \lstinline{.withDeploy}. The configurations achieved
+269.4Mn/s, 286.8Mn/s, and 274.2Mn/s, respectively. This shows that the \apgas
+code comes within 98\% and 93\% of the performance of the multi-process and
+single-process Akka configurations, respectively.
 
 %UTSAPGAS 32 places, 1 worker/place, depth 15
 %[uts-apgas-32] depth: 15, performance: 4230646601/15.617225935 = 270.8961641848719M nodes/s

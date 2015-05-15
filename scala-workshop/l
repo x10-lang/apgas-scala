@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
+cd plots
+./make.sh
+cd ..
+
 rubber --force --pdf paper
 rubber --force --pdf paper

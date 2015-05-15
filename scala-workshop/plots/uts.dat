@@ -1,0 +1,3 @@
+# Workers       throughput-apgas        throughput-akka-proc    throughput-akka-threads
+1               9.551830867934449       9.551830867934449       9.551830867934449
+32              269.4402848576983       274.20168876204065      286.78034433488267  

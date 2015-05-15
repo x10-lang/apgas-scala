@@ -16,7 +16,7 @@ sleep 10
 
 echo "Launching master."
 
-${JAVA} -classpath ''${AKKA_HOME}'/lib/akka/*:'${SCALA_HOME}'/lib/scala-library.jar:bin' apgas.scala.examples.uts.UTSAkka ${DEPTH} ${WORKERS} 0
+${JAVA} -classpath ''${AKKA_HOME}'/lib/akka/*:'${SCALA_HOME}'/lib/scala-library.jar:bin' apgas.scala.examples.uts.UTSAkkaDistributed ${DEPTH} ${WORKERS} 0
 
 echo "Killing workers."
 

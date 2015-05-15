@@ -31,11 +31,12 @@ object KMeans {
       case _ : Throwable => NUM_PLACES
     }
     Common.setup(numPlaces = numPlaces)
+    val numThreads = System.getProperty(Configuration.APGAS_THREADS).toInt
 
     val iterations = 50
 
-    printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
-      NUM_CENTROIDS, NUM_POINTS, DIM, numPlaces)
+    printf("K-Means: %d clusters, %d points, %d dimensions, %d places, %d threads\n",
+      NUM_CENTROIDS, NUM_POINTS, DIM, numPlaces, numThreads)
 
     val localState = GlobalRef.forPlaces(places) {
       val d = new LocalData(NUM_POINTS / numPlaces)

@@ -15,14 +15,24 @@ import apgas.scala._
 
 object UTSAPGAS {
   def main(args : Array[String]) : Unit = {
-    Common.setup(numPlaces = 2)   
-    
     val seed = 19
     val maxDepth = try {
-      args(0).toInt
+       args(0).toInt
     } catch {
-      case _ : Throwable => 13
+      case _ : Throwable =>
+        println("Defaulting to maxDepth=13...")
+        13
     }
+   
+    val numWorkers = try {
+      args(1).toInt
+    } catch {
+      case _ : Throwable =>
+        println("Defaulting to 2 workers...")
+        2
+    }
+   
+   Common.setup(numPlaces = numWorkers) 
     
     {
       // initialize a worker in each place

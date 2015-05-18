@@ -16,6 +16,5 @@ set ylabel "Mn/s/worker"
 
 set grid
 
-plot "uts.dat" using 1:($2/$1):xtic(1) ls 1 title '\small{APGAS}' with lp,\
-     "uts.dat" using 1:($3/$1) ls 2 title '\small{Akka-remote}' with lp,\
-     "uts.dat" using 1:($4/$1) ls 3 title '\small{Akka}' with lp
+plot "uts.dat" using 1:(($5+$6+$7)/(3*$1)):xtic(1) ls 1 title '\small{APGAS}' with lp,\
+     "uts.dat" using 1:(($14+$15+$16)/(3*$1)) ls 3 title '\small{Akka-remote}' with lp

@@ -11,6 +11,8 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 
+import com.typesafe.config.ConfigFactory
+
 object UTSAkka {
   import Common._
   
@@ -50,11 +52,21 @@ object UTSAkka {
         2
     }
     
-    val system = ActorSystem("uts-system")
+    val config = ConfigFactory.parseString(s"""
+      uts-pinned-dispatcher {
+        executor = "thread-pool-executor"
+        type = PinnedDispatcher
+        thread-pool-executor.allow-core-timeout=off
+      }
+    """)
+    
+    val system = ActorSystem("uts-system", config)
     
     implicit val dispatcher = system.dispatcher
     
-    val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
+    val master = system.actorOf(Props(new Master(numWorkers))
+        .withDispatcher("uts-pinned-dispatcher"),
+        name = "master")
     
     println("Warmup...")
     Await.result(master ? Compute(seed, (depth - 2) max 5), 1 hour)
@@ -78,7 +90,9 @@ object UTSAkka {
   
   class Master(numWorkers : Int) extends Actor with ActorLogging {
     val workers = Vector.tabulate[ActorRef](numWorkers) { i =>
-      context.actorOf(Props(new Worker(self, i)), name = s"worker-$i")
+      context.actorOf(Props(new Worker(self, i))
+          .withDispatcher("uts-pinned-dispatcher"),
+          name = s"worker-$i")
     }
     
     var seed : Int = 0

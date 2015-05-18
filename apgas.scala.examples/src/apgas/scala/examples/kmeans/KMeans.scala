@@ -49,6 +49,7 @@ object KMeans {
     val iterations = 50
 
     println("Warmup...")
+
     run(numPlaces, numPoints, iterations, warmup = true)
     run(numPlaces, numPoints, iterations)
   }
@@ -137,5 +138,7 @@ object KMeans {
       printf("[kmeans-apgas-%d] Time per iteration %.3f ms\n", numPlaces, time / 1e6 / iter)
       printf("[kmeans-apgas-%d] Iterations per sec: %.3f\n", numPlaces, iter / (time / 1e9))
     }
+    
+    localState.free()
   }
 }

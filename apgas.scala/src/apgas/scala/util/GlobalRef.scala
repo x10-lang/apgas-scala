@@ -7,6 +7,7 @@ import _root_.scala.collection.JavaConverters._
 
 sealed trait GlobalRef[T] {
   def apply() : T
+  def free() : Unit
 }
   
 object GlobalRef {

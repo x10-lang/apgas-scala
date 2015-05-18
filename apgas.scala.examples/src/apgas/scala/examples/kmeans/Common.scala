@@ -6,12 +6,12 @@ object Common {
   val DIM           : Int = 4
   val NUM_CENTROIDS : Int = 5
   var NUM_PLACES    : Int = 2
-  var NUM_THREADS   : Int = 4
+  var NUM_THREADS   : Int = 2
   // val NUM_POINTS    : Int = 2000000
   
   def setup(numPlaces : Int = 1) : Unit = {
     // PS: I need this because java is not the default on my system..
-    System.setProperty(Configuration.APGAS_JAVA, "java8")
+    //System.setProperty(Configuration.APGAS_JAVA, "java8")
 
     if (System.getProperty(Configuration.APGAS_PLACES) == null)
       System

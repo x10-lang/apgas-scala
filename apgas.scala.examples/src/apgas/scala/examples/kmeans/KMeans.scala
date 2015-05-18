@@ -18,41 +18,45 @@ import java.util.Random
 object KMeans {
   import Common._
 
-  class LocalData(numPoints: Int) extends Serializable {
-    val points    = Array.ofDim[Float](numPoints, DIM)
+  class ClusterState extends Serializable {
     val centroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)
-    val counts    = Array.ofDim[Int](NUM_CENTROIDS)
+    val counts = Array.ofDim[Int](NUM_CENTROIDS)
+  }
+
+  class LocalData(numPoints: Int) extends Serializable {
+    val points = Array.ofDim[Float](numPoints, DIM)
+    val clusterState = new ClusterState
   }
 
   def main(args: Array[String]): Unit = {
     val numPlaces = try {
       args(1).toInt
     } catch {
-      case _ : Throwable => NUM_PLACES
+      case _: Throwable => NUM_PLACES
     }
-    
+
     val numPoints = try {
       args(0).toInt
     } catch {
-      case _ : Throwable =>
-         println("Defaulting to 2M points")
-         2000000
+      case _: Throwable =>
+        println("Defaulting to 2M points")
+        2000000
     }
-    
+
     Common.setup(numPlaces = numPlaces)
     val numThreads = System.getProperty(Configuration.APGAS_THREADS).toInt
 
     val iterations = 50
-    
+
     println("Warmup...")
-    run(numPlaces, numPoints, iterations, warmup=true)
+    run(numPlaces, numPoints, iterations, warmup = true)
     run(numPlaces, numPoints, iterations)
   }
-  
-  def run(numPlaces: Int, numPoints: Int, iterations0: Int, warmup: Boolean=false) : Unit = {
-    val iterations = if(warmup) { iterations0 / 10 } else iterations0
 
-    if(!warmup) {
+  def run(numPlaces: Int, numPoints: Int, iterations0: Int, warmup: Boolean = false): Unit = {
+    val iterations = if (warmup) { iterations0 / 10 } else iterations0
+
+    if (!warmup) {
       printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
         NUM_CENTROIDS, numPoints, DIM, numPlaces)
     }
@@ -63,9 +67,9 @@ object KMeans {
       d
     }
 
-    val centroids    = Array.ofDim[Float](NUM_CENTROIDS, DIM)
+    val centroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)
     val newCentroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)
-    val newCounts    = Array.ofDim[Int](NUM_CENTROIDS)
+    val newCounts = Array.ofDim[Int](NUM_CENTROIDS)
 
     // arbitrarily initialize central clusters to first few points
     for (i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
@@ -78,23 +82,24 @@ object KMeans {
     var converged = false
 
     while (iter <= iterations && !converged) {
-      if(!warmup) print(".")
+      if (!warmup) print(".")
       finish {
         for (place <- places) {
           async {
             val placeState = at(place) {
-              reset2DArray(localState().centroids)
-              resetArray(localState().counts)
+              val clusterState = localState().clusterState
+              reset2DArray(clusterState.centroids)
+              resetArray(clusterState.counts)
 
               val lps = localState().points
               for (p <- 0 until lps.length) {
                 val c = closestCentroid(lps(p), centroids)
                 for (d <- 0 until DIM) {
-                  localState().centroids(c)(d) += lps(p)(d)
+                  clusterState.centroids(c)(d) += lps(p)(d)
                 }
-                localState().counts(c) += 1
+                clusterState.counts(c) += 1
               }
-              localState()
+              clusterState
             }
 
             // Combine place clusters to central
@@ -124,10 +129,10 @@ object KMeans {
       resetArray(newCounts)
     }
     time = System.nanoTime() - time
-    
+
     // printCentroids(centroids)
 
-    if(!warmup) {
+    if (!warmup) {
       println("")
       printf("[kmeans-apgas-%d] Time per iteration %.3f ms\n", numPlaces, time / 1e6 / iter)
       printf("[kmeans-apgas-%d] Iterations per sec: %.3f\n", numPlaces, iter / (time / 1e9))

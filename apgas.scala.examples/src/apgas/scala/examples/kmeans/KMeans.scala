@@ -26,20 +26,37 @@ object KMeans {
 
   def main(args: Array[String]): Unit = {
     val numPlaces = try {
-      args(0).toInt
+      args(1).toInt
     } catch {
       case _ : Throwable => NUM_PLACES
     }
+    
+    val numPoints = try {
+      args(0).toInt
+    } catch {
+      case _ : Throwable => NUM_POINTS
+    }
+    
     Common.setup(numPlaces = numPlaces)
     val numThreads = System.getProperty(Configuration.APGAS_THREADS).toInt
 
     val iterations = 50
+    
+    println("Warmup...")
+    run(numPlaces, numPoints, iterations, warmup=true)
+    run(numPlaces, numPoints, iterations)
+  }
+  
+  def run(numPlaces: Int, numPoints: Int, iterations0: Int, warmup: Boolean=false) : Unit = {
+    val iterations = if(warmup) { iterations0 / 10 } else iterations0
 
-    printf("K-Means: %d clusters, %d points, %d dimensions, %d places, %d threads\n",
-      NUM_CENTROIDS, NUM_POINTS, DIM, numPlaces, numThreads)
+    if(!warmup) {
+      printf("K-Means: %d clusters, %d points, %d dimensions, %d places\n",
+        NUM_CENTROIDS, numPoints, DIM, numPlaces)
+    }
 
     val localState = GlobalRef.forPlaces(places) {
-      val d = new LocalData(NUM_POINTS / numPlaces)
+      val d = new LocalData(numPoints / numPlaces)
       copy2DArray(Common.pointsForWorker(here.id, numPlaces).toArray, d.points)
       d
     }
@@ -59,7 +76,7 @@ object KMeans {
     var converged = false
 
     while (iter <= iterations && !converged) {
-      print(".")
+      if(!warmup) print(".")
       finish {
         for (place <- places) {
           async {
@@ -106,8 +123,12 @@ object KMeans {
     }
     time = System.nanoTime() - time
     
-    printCentroids(centroids)
+    // printCentroids(centroids)
 
-    printf("Time per iteration %.3f ms\n", time / 1e6 / iter)
+    if(!warmup) {
+      println("")
+      printf("[kmeans-apgas-%d] Time per iteration %.3f ms\n", numPlaces, time / 1e6 / iter)
+      printf("[kmeans-apgas-%d] Iterations per sec: %.3f\n", numPlaces, iter / (time / 1e9))
+    }
   }
 }

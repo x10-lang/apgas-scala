@@ -8,7 +8,10 @@ import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ArrayBuffer
 
-object KMeansAkka {
+import akka.remote.RemoteScope
+import com.typesafe.config.ConfigFactory
+
+object KMeansAkkaDistributed {
   import Common._
   
   def main(args : Array[String]) : Unit = {
@@ -24,23 +27,52 @@ object KMeansAkka {
       case _ : Throwable => NUM_PLACES
     }
     
+    val thisWorker = try {
+      args(2).toInt
+    } catch {
+      case _ : Throwable =>
+        println("Default to worker 0")
+        0
+    }
+    
     val iterations = 50
     
-    val system = ActorSystem("kmeans-system")
+    val config = ConfigFactory.parseString(s"""
+      akka {
+        actor {
+          provider = "akka.remote.RemoteActorRefProvider"
+        }
+  
+        remote {
+          transport = "akka.remote.netty.NettyRemoteTransport"
+    
+          netty.tcp {
+            hostname = "localhost"
+            port = ${2550 + thisWorker}
+          }
+        }
+      }
+    """)
+    
+    val system = ActorSystem("kmeans-system", config)
     
     implicit val dispatcher = system.dispatcher
     
-    val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
+    if(thisWorker == 0) {
+      val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
     
-    println("Warmup...")
-    run(master, numWorkers, numPoints, iterations, warmup=true)
+      println("Warmup...")
+      run(master, numWorkers, numPoints, iterations, warmup=true)
     
-    printf("K-Means: %d clusters, %d points, %d dimensions, %d workers\n", 
-        NUM_CENTROIDS, numPoints, DIM, numWorkers)
+      printf("K-Means: %d clusters, %d points, %d dimensions, %d workers\n", 
+          NUM_CENTROIDS, numPoints, DIM, numWorkers)
     
-    run(master, numWorkers, numPoints, iterations)
-    
-    system.shutdown()
+      run(master, numWorkers, numPoints, iterations)
+          
+      system.shutdown()
+    } else {
+      println("Awaiting actors from master...")
+    }
   }
   
   def run(master: ActorRef, numWorkers: Int, numPoints: Int, iterations0: Int, warmup: Boolean=false) : Unit = {
@@ -73,9 +105,13 @@ object KMeansAkka {
   case class FinalCentroids(centroids : Array[Array[Float]], iterations: Int)
   case class Updated(centroids : Array[Array[Float]], counts : Array[Int])
 
-  class Master(numWorkers : Int) extends Actor {
+  class Master(val numWorkers : Int) extends Actor {
     val workers = Vector.tabulate(numWorkers) { i =>
-      context.actorOf(Props(new Worker(i, numWorkers)), name = s"worker-$i")
+      val n = numWorkers
+      val where = i % numWorkers
+      val actorAddress = AddressFromURIString(s"akka.tcp://kmeans-system@localhost:${2550+where}")
+      
+      context.actorOf(Props(new Worker(i, n)).withDeploy(Deploy(scope = RemoteScope(actorAddress))), name = s"worker-$i")
     }
     
     val centroids    = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -139,7 +175,7 @@ object KMeansAkka {
     }
   }
   
-  class Worker(id : Int, numWorkers : Int) extends Actor {
+  class Worker(val id : Int, val numWorkers : Int) extends Actor {
     val points = Common.pointsForWorker(id, numWorkers).toArray
     
     val localCentroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)

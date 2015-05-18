@@ -1,21 +1,34 @@
 \section{Performance Evaluation}
 \label{sec:perf}
 
-\paragraph{\kmeans}. \TODO
+We ran our Akka and \apgas implementations of \kmeans and UTS on a 48 core
+machine, measuring the performance of configurations with 1, 2, 4, 8, 16, and
+32 workers. For the \apgas programs, the number of workers corresponds to the
+number of places. For the Akka programs, $n$ workers correspond to $n+1$
+actors: for both benchmarks we used the idiom of a master actor supervising the
+workers and detecting termination, as described in Sections~\ref{sec:kmeans}
+and~\ref{sec:uts}.
 
-\paragraph{UTS.} We measured the rate of traversal of our Akka and
-\apgas implementations of UTS in millions of nodes per second (Mn/s), using
-32-way parallelism on a 48 core machine. We measured three configurations: 1)
-\apgas implementation on 32 processes, 2) Akka implementation on 1 process with
-32 worker actors, 3) Akka implementation on 32 processes, each with 1 worker
-actor.\footnote{As places in \apgas are currently only realized as separate
-processes, configuration 3) is closer in terms of communication constraints.}
-We used \lstinline{akka-remote} for 3), and the flexibility of the actor model
-means that the distribution of workers per process is isolated to a single
-invocation of \lstinline{.withDeploy}. The configurations achieved 269.4Mn/s,
-286.8Mn/s, and 274.2Mn/s, respectively. This shows that the \apgas code comes
-within 98\% and 93\% of the performance of the multi-process and single-process
-Akka configurations, respectively.
+We ran our Akka programs by allocating one process for each worker actor, and
+using \lstinline{akka-remote} for communication. This configuration \TODO
+
+All numbers were obtained by averaging the results of three runs.
+
+Using \lstinline{akka-remote},
+\TODO
+
+\paragraph{\kmeans.} Figure~\ref{fig:kmeans-scaling} shows \TODO
+
+\begin{figure}
+\vspace{-0.3cm}
+\hspace{-0.2cm}
+\begingroup\graphicspath{{figures/}}\input{figures/kmeans}\endgroup
+\vspace{-0.2cm}
+\caption{Scaling of \kmeans implementations.}
+\label{fig:uts-scaling}
+\end{figure}
+
+\paragraph{UTS.} Figure~\ref{fig:uts-scaling} shows \TODO
 
 \begin{figure}
 \vspace{-0.3cm}
@@ -26,11 +39,18 @@ Akka configurations, respectively.
 \label{fig:uts-scaling}
 \end{figure}
 
-\begin{figure}
-\vspace{-0.3cm}
-\hspace{-0.2cm}
-\begingroup\graphicspath{{figures/}}\input{figures/kmeans}\endgroup
-\vspace{-0.2cm}
-\caption{Scaling of \kmeans implementations.}
-\label{fig:uts-scaling}
-\end{figure}
+
+% \paragraph{UTS.} We measured the rate of traversal of our Akka and
+% \apgas implementations of UTS in millions of nodes per second (Mn/s), using
+% 32-way parallelism on a 48 core machine. We measured three configurations: 1)
+% \apgas implementation on 32 processes, 2) Akka implementation on 1 process with
+% 32 worker actors, 3) Akka implementation on 32 processes, each with 1 worker
+% actor.\footnote{As places in \apgas are currently only realized as separate
+% processes, configuration 3) is closer in terms of communication constraints.}
+% We used \lstinline{akka-remote} for 3), and the flexibility of the actor model
+% means that the distribution of workers per process is isolated to a single
+% invocation of \lstinline{.withDeploy}. The configurations achieved 269.4Mn/s,
+% 286.8Mn/s, and 274.2Mn/s, respectively. This shows that the \apgas code comes
+% within 98\% and 93\% of the performance of the multi-process and single-process
+% Akka configurations, respectively.
+

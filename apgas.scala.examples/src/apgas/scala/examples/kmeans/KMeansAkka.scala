@@ -23,7 +23,7 @@ object KMeansAkka {
     val numWorkers = try {
       args(1).toInt
     } catch {
-      case _ : Throwable => NUM_PLACES
+      case _ : Throwable => DEFAULT_PLACES
     }
     
     val iterations = 50

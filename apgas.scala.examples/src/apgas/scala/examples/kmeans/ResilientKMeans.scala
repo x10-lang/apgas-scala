@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
  * in the X10 Benchmarks (separate download from x10-lang.org)
  */
 object ResilientKMeans {
-  import Common.{ DIM, NUM_CENTROIDS, NUM_PLACES }
+  import Common.{ DIM, NUM_CENTROIDS, DEFAULT_PLACES }
 
   class ClusterState extends Serializable {
     val clusters = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -29,14 +29,15 @@ object ResilientKMeans {
   }
 
   def main(args: Array[String]): Unit = {
-    Common.setup(numPlaces = NUM_PLACES)
+
+    val DEFAULT_THREADS = 1
 
     val numPoints: Int = try {
       args(0).toInt
     } catch {
       case _: Throwable =>
-         println("Defaulting to 2M points")
-         2000000
+        println("Defaulting to 2M points")
+        2000000
     }
     val iterations: Int = try {
       args(1).toInt
@@ -44,8 +45,17 @@ object ResilientKMeans {
       case _: Throwable => 20
     }
 
+    if (System.getProperty(Configuration.APGAS_PLACES) == null)
+      System.setProperty(Configuration.APGAS_PLACES,
+        String.valueOf(DEFAULT_PLACES))
+
+    if (System.getProperty(Configuration.APGAS_THREADS) == null)
+      System.setProperty(Configuration.APGAS_THREADS,
+        String.valueOf(DEFAULT_THREADS))
+
+    val numPlaces = System.getProperty(Configuration.APGAS_PLACES).toInt
     printf("Resilient K-Means: %d clusters, %d points, %d dimensions, %d places\n",
-      NUM_CENTROIDS, numPoints, DIM, NUM_PLACES)
+      NUM_CENTROIDS, numPoints, DIM, numPlaces)
 
     val clusterState = GlobalRef.forPlaces(places) {
       new ClusterState()
@@ -53,7 +63,7 @@ object ResilientKMeans {
 
     def pointsForPlace(i: Int): ListBuffer[Array[Float]] = {
       val rand = new Random(i)
-      ListBuffer.fill[Array[Float]](numPoints / NUM_PLACES) {
+      ListBuffer.fill[Array[Float]](numPoints / numPlaces) {
         Array.fill[Float](DIM) { rand.nextFloat() }
       }
     }

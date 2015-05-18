@@ -7,17 +7,21 @@ machine, measuring the performance of configurations with 1, 2, 4, 8, 16, and
 number of places. For the Akka programs, $n$ workers correspond to $n+1$
 actors: for both benchmarks we used the idiom of a master actor supervising the
 workers and detecting termination, as described in Sections~\ref{sec:kmeans}
-and~\ref{sec:uts}.
+and~\ref{sec:uts}. Because we are primarily interested in the scaling profile of
+our applications, we normalize the performance by the number of workers.
 
 We ran our Akka programs by allocating one process for each worker actor, and
-using \lstinline{akka-remote} for communication. This configuration \TODO
+using \lstinline{akka-remote} for communication. This configuration is close to
+\apgas in terms of communication constraints,\footnote{Places in \apgas are
+currently only realized as separate processes.} and we believe it reflects
+typical distributed computing applications. All numbers were obtained by
+averaging the results of three runs.
 
-All numbers were obtained by averaging the results of three runs.
-
-Using \lstinline{akka-remote},
-\TODO
-
-\paragraph{\kmeans.} Figure~\ref{fig:kmeans-scaling} shows \TODO
+For \kmeans, we fixed the problem input size to 16 million 4 dimensional points
+and 5 centroids, and measured performance as the number of iterations per
+second. Figure~\ref{fig:kmeans-scaling} shows the effect of scaling the number
+of workers for the \apgas and Akka implementations. \TODO come up with
+brilliant insight.
 
 \begin{figure}
 \vspace{-0.3cm}
@@ -28,7 +32,8 @@ Using \lstinline{akka-remote},
 \label{fig:uts-scaling}
 \end{figure}
 
-\paragraph{UTS.} Figure~\ref{fig:uts-scaling} shows \TODO
+For UTS, we measured the rate of traversal of a tree of depth 15, in millions
+of nodes per second. Figure~\ref{fig:uts-scaling} shows \TODO
 
 \begin{figure}
 \vspace{-0.3cm}

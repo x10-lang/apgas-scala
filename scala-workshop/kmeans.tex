@@ -26,49 +26,51 @@ centroids. The place-local memory is held in \lstinline{local}, of type
 
 The structure of the computation, including the distribution
 aspect, is fully explicit in the code: the outermost \lstinline{while} loop
-iterates until convergence, The \lstinline{for} loop includes work related to
-each place, to be run asynchronously, as indicated by \lstinline{async}, and 
-a part of that work is to be executed remotely, as indicated by \lstinline{at}.
+iterates until convergence, the \lstinline{for} loop spawns an activity to be run asynchronously at each place as indicated by \lstinline{asyncAt}, which in turn spawns a remote activity at the master place to combine the place's local view with the master's view.
 Finally, \lstinline{finish} ensures that all remote work has completed before
 proceeding to the next iteration.
 \begin{figure}
 \begin{lstlisting}
-class LocalData(numPoints: Int) extends Serializable {
-  val points    $\EQ$ Array.ofDim[Float](numPoints, D)
+class ClusterState extends Serializable {
   val centroids $\EQ$ Array.ofDim[Float](K, D)
-  val counts    $\EQ$ Array.ofDim[Int](K)
+  val counts $\EQ$ Array.ofDim[Int](K)
 }
+
 val local $\EQ$ GlobalRef.forPlaces(places) { $\ldots$ }
-val centroids, newCentroids $\EQ$ Array.ofDim[Float](K, D)
-val newCounts $\EQ$ Array.ofDim[Int](K)
+val masterState $\EQ$ new ClusterState();
+val masterGr $\EQ$ SharedRef.make(masterState)
+val currentCentroids $\EQ$ Array.ofDim[Float](K, D)
+
 while (!converged()) {
   finish {
     reset(newCentroids); reset(newCounts)
     for (p $\lA$ places) {
-      async {
-        val pState: LocalData $\EQ$ at(p) {
-          compute(centroids, local, $\ldots$)
-          local()
+      asyncAt(place) {
+        val pState = local();
+        compute(currentCentroids, pState, $\ldots$)
+        asyncAt(masterGr.home()) {
+          val newCentroids $\EQ$ masterGr().centroids
+          newCentroids.synchronized {
+            $\ldots$ /* add elements from pState.centroids */ }
+          val newCounts $\EQ$ masterGr().counts;
+          newCounts.synchronized {
+            $\ldots$ /* add elements from pState.counts */ }
         }
-        newCentroids.synchronized {
-          $\ldots$ /* add elements from pState.centroids */ }
-        newCounts.synchronized {
-          $\ldots$ /* add elements from pState.counts */ }
+      }
   } } }
-  $\ldots$ // normalize newCentroids by newCounts
-  copyArray(newCentroids, centroids)
+  $\ldots$ // normalize centroids by counts
+  copyArray(masterState.centroids, currentCentroids)
 }
 \end{lstlisting}
 \caption{Code structure for \kmeans in \apgas.\label{fig:kmeansapgas}}
 \end{figure}
 An aspect of the code that can be harder to grasp is the movement of data: the
-value of \lstinline{centroids} is sent from the master to a worker by letting
-the variable be captured in the closure passed to \lstinline{at}. The other
-direction is more explicit: \lstinline{at} blocks until the value
-\lstinline{local()} is returned. Note that while \lstinline{local} is a
+value of \lstinline{currentCentroids} is sent from the master to a worker by letting the variable be captured in the closure passed to \lstinline{asyncAt}.
+Note that while \lstinline{local} is a
 \lstinline{GlobalRef} and is therefore never serialized implicitly, here we use
 \lstinline{apply} to dereference it and thus pass a copy of the data of type
-\lstinline{LocalData} to the master process. Finally, note that the portion of
+\lstinline{LocalData} to the master process in the nested \lstinline{asyncAt}.
+Finally, note that the portion of
 the code that adds the contribution of a worker to the master values must be
 protected for data races.
 

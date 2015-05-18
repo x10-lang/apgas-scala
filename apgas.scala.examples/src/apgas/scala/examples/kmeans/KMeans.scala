@@ -93,33 +93,51 @@ object KMeans {
               resetArray(clusterState.counts)
 
               val lps = localState().points
-              for (p <- 0 until lps.length) {
+              var p = 0
+              while (p < lps.length) {
                 val c = closestCentroid(lps(p), centroids)
-                for (d <- 0 until DIM) {
+                var d = 0
+                while (d < DIM) {
                   clusterState.centroids(c)(d) += lps(p)(d)
+                  d += 1
                 }
                 clusterState.counts(c) += 1
+                p += 1
               }
               clusterState
             }
 
             // Combine place clusters to central
             newCentroids.synchronized {
-              for (k <- 0 until NUM_CENTROIDS; d <- 0 until DIM) {
-                newCentroids(k)(d) += placeState.centroids(k)(d)
+              var k: Int = 0
+              while (k < NUM_CENTROIDS) {
+                var d: Int = 0
+                while (d < DIM) {
+                  newCentroids(k)(d) += placeState.centroids(k)(d)
+                  d += 1
+                }
+                k += 1
               }
             }
             newCounts.synchronized {
-              for (j <- 0 until NUM_CENTROIDS) {
+              var j = 0
+              while (j < NUM_CENTROIDS) {
                 newCounts(j) += placeState.counts(j)
+                j += 1
               }
             }
           }
         }
       }
 
-      for (k <- 0 until NUM_CENTROIDS; d <- 0 until DIM) {
-        newCentroids(k)(d) /= newCounts(k)
+      var k: Int = 0
+      while (k < NUM_CENTROIDS) {
+        var d: Int = 0
+        while (d < DIM) {
+          newCentroids(k)(d) /= newCounts(k)
+          d += 1
+        }
+        k += 1
       }
 
       iter += 1
@@ -131,14 +149,13 @@ object KMeans {
     }
     time = System.nanoTime() - time
 
-    // printCentroids(centroids)
-
     if (!warmup) {
+      printCentroids(centroids)
       println("")
       printf("[kmeans-apgas-%d] Time per iteration %.3f ms\n", numPlaces, time / 1e6 / iter)
       printf("[kmeans-apgas-%d] Iterations per sec: %.3f\n", numPlaces, iter / (time / 1e9))
     }
-    
+
     localState.free()
   }
 }

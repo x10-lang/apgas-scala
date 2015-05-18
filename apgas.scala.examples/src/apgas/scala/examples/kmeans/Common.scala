@@ -5,8 +5,8 @@ package kmeans
 object Common {
   val DIM           : Int = 4
   val NUM_CENTROIDS : Int = 5
-  var NUM_PLACES    : Int = 2
-  var NUM_THREADS   : Int = 2
+  var NUM_PLACES    : Int = 1
+  var NUM_THREADS   : Int = 1
   // val NUM_POINTS    : Int = 2000000
   
   def setup(numPlaces : Int = 1) : Unit = {
@@ -38,16 +38,20 @@ object Common {
     var closest = -1
     var closestDist = Float.MaxValue
     
-    for (k <- 0 until NUM_CENTROIDS) {
+    var k = 0
+    while (k < NUM_CENTROIDS) {
       var dist = 0.0f
-      for (d <- 0 until DIM) {
+      var d = 0
+      while (d < DIM) {
         val tmp = point(d) - centroids(k)(d)
         dist += tmp * tmp
+        d+=1
       }
       if (dist < closestDist) {
         closestDist = dist
         closest = k
       }
+      k+=1
     }
     
     closest

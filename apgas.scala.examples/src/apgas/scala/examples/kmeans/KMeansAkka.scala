@@ -118,19 +118,34 @@ object KMeansAkka {
         }
         
       case Updated(workerCentroids, workerCounts) =>
-        for(i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
-          newCentroids(i)(j) += workerCentroids(i)(j)
+        var k = 0
+        while (k < NUM_CENTROIDS) {
+          var d = 0
+          while (d < DIM) {
+            newCentroids(k)(d) += workerCentroids(k)(d)
+            d += 1
+          }
+          k += 1
         }
-        for(i <- 0 until NUM_CENTROIDS) {
-          newCounts(i) += workerCounts(i)
+
+        k = 0
+        while (k < NUM_CENTROIDS) {
+          newCounts(k) += workerCounts(k)
+          k += 1
         }
         updates += 1
         
         if(updates == numWorkers) {
-          for(i <- 0 until NUM_CENTROIDS; j <- 0 until DIM) {
-            newCentroids(i)(j) /= newCounts(i)
+          var k = 0
+          while (k < NUM_CENTROIDS) {
+            var d = 0
+            while (d < DIM) {
+              newCentroids(k)(d) /= newCounts(k)
+              d += 1
+            }
+            k += 1
           }
-          
+                      
           if(Common.withinEpsilon(centroids, newCentroids)) {
             itersLeft = 0
           }
@@ -152,12 +167,16 @@ object KMeansAkka {
         copy2DArray(centroids, localCentroids)
         resetArray(localCounts)
         
-        for (p <- 0 until points.length) {
+        var p = 0
+        while (p < points.length) {
           val c = Common.closestCentroid(points(p), centroids)
-          for (d <- 0 until DIM) {
+          var d = 0
+          while (d < DIM) {
             localCentroids(c)(d) += points(p)(d)
+            d += 1
           }
           localCounts(c) += 1
+          p += 1
         }
         sender ! Updated(localCentroids, localCounts)
     }

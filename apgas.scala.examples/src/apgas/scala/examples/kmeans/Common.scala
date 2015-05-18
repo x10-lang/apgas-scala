@@ -7,7 +7,7 @@ object Common {
   val NUM_CENTROIDS : Int = 5
   var NUM_PLACES    : Int = 2
   var NUM_THREADS   : Int = 4
-  val NUM_POINTS    : Int = 2000000
+  // val NUM_POINTS    : Int = 2000000
   
   def setup(numPlaces : Int = 1) : Unit = {
     // PS: I need this because java is not the default on my system..
@@ -26,10 +26,10 @@ object Common {
       NUM_THREADS = System.getProperty(Configuration.APGAS_THREADS).toInt
   }
   
-  def pointsForWorker(workerID : Int, numPlaces : Int) : Seq[Array[Float]] = {
+  def pointsForWorker(workerID : Int, numPlaces : Int, numPoints : Int) : Seq[Array[Float]] = {
     val rand = new java.util.Random(workerID)
     
-    Array.fill[Array[Float]](NUM_POINTS / numPlaces) {
+    Array.fill[Array[Float]](numPoints / numPlaces) {
       Array.fill[Float](DIM) { rand.nextFloat() }
     }
   }

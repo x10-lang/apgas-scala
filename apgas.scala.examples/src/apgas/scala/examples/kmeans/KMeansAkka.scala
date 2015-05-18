@@ -15,7 +15,9 @@ object KMeansAkka {
     val numPoints = try {
       args(0).toInt
     } catch {
-      case _ : Throwable => NUM_POINTS
+      case _ : Throwable =>
+        println("Defaulting to 2M points.")
+        2000000
     }
     
     val numWorkers = try {
@@ -30,7 +32,7 @@ object KMeansAkka {
     
     implicit val dispatcher = system.dispatcher
     
-    val master = system.actorOf(Props(new Master(numWorkers)), name = "master")
+    val master = system.actorOf(Props(new Master(numWorkers, numPoints)), name = "master")
     
     println("Warmup...")
     run(master, numWorkers, numPoints, iterations, warmup=true)
@@ -73,9 +75,9 @@ object KMeansAkka {
   case class FinalCentroids(centroids : Array[Array[Float]], iterations: Int)
   case class Updated(centroids : Array[Array[Float]], counts : Array[Int])
 
-  class Master(numWorkers : Int) extends Actor {
+  class Master(numWorkers : Int, numPoints : Int) extends Actor {
     val workers = Vector.tabulate(numWorkers) { i =>
-      context.actorOf(Props(new Worker(i, numWorkers)), name = s"worker-$i")
+      context.actorOf(Props(new Worker(i, numWorkers, numPoints)), name = s"worker-$i")
     }
     
     val centroids    = Array.ofDim[Float](NUM_CENTROIDS, DIM)
@@ -83,7 +85,7 @@ object KMeansAkka {
     val newCounts    = Array.ofDim[Int](NUM_CENTROIDS)
     
     // Arbitrarily initialize centroids to first few points
-    val first = pointsForWorker(0, numWorkers).take(NUM_CENTROIDS)
+    val first = pointsForWorker(0, numWorkers, numPoints).take(NUM_CENTROIDS)
     copy2DArray(first.toArray, centroids)
     
     var requester : Option[ActorRef] = None
@@ -139,8 +141,8 @@ object KMeansAkka {
     }
   }
   
-  class Worker(id : Int, numWorkers : Int) extends Actor {
-    val points = Common.pointsForWorker(id, numWorkers).toArray
+  class Worker(id : Int, numWorkers : Int, numPoints : Int) extends Actor {
+    val points = Common.pointsForWorker(id, numWorkers, numPoints).toArray
     
     val localCentroids = Array.ofDim[Float](NUM_CENTROIDS, DIM)
     val localCounts    = Array.ofDim[Int](NUM_CENTROIDS)

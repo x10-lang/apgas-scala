@@ -34,7 +34,9 @@ object ResilientKMeans {
     val numPoints: Int = try {
       args(0).toInt
     } catch {
-      case _: Throwable => Common.NUM_POINTS
+      case _: Throwable =>
+         println("Defaulting to 2M points")
+         2000000
     }
     val iterations: Int = try {
       args(1).toInt

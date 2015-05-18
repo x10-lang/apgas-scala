@@ -34,7 +34,9 @@ object KMeans {
     val numPoints = try {
       args(0).toInt
     } catch {
-      case _ : Throwable => NUM_POINTS
+      case _ : Throwable =>
+         println("Defaulting to 2M points")
+         2000000
     }
     
     Common.setup(numPlaces = numPlaces)
@@ -57,7 +59,7 @@ object KMeans {
 
     val localState = GlobalRef.forPlaces(places) {
       val d = new LocalData(numPoints / numPlaces)
-      copy2DArray(Common.pointsForWorker(here.id, numPlaces).toArray, d.points)
+      copy2DArray(Common.pointsForWorker(here.id, numPlaces, numPoints).toArray, d.points)
       d
     }
 

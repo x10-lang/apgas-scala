@@ -16,8 +16,11 @@ set ylabel "Iterations/s/worker" offset 2
 
 set grid
 
-plot "kmeans.dat" using 1:(($2+$3+$4)/(3*$1)):xtic(1) ls 1 title '\small{APGAS}' with lp,\
-     "kmeans.dat" using 1:(($8+$9+$10)/(3*$1)) ls 2 title '\small{Akka}' with lp
+# For 16M
+# plot "kmeans.dat" using 1:(($2+$3+$4)/(3*$1)):xtic(1) ls 1 title '\small{APGAS}' with lp,\
+#      "kmeans.dat" using 1:(($8+$9+$10)/(3*$1)) ls 2 title '\small{Akka}' with lp
 
-#     "kmeans.dat" using 1:(($5+$6+$7)/(3*$1)) ls 3 title '\small{Akka-pinned}' with lp, \
+# For 32M
+plot "kmeans32.dat" using 1:(($2+$3+$4)/(3*$1)):xtic(1) ls 1 title '\small{APGAS}' with lp,\
+     "kmeans32.dat" using 1:(($5+$6+$7)/(3*$1)) ls 2 title '\small{Akka}' with lp
 

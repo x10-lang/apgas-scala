@@ -1,7 +1,6 @@
 \section{Performance Evaluation}
 \label{sec:perf}
-
-We ran our Akka and \apgas implementations of \kmeans and UTS on a 48 core
+We ran our \apgas and Akka implementations of \kmeans and UTS on a 48 core
 machine, measuring the performance of configurations with 1, 2, 4, 8, 16, and
 32 workers. For the \apgas programs, the number of workers corresponds to the
 number of places. For the Akka programs, $n$ workers correspond to $n+1$
@@ -17,11 +16,18 @@ currently only realized as separate processes.} and we believe it reflects
 typical distributed computing applications. All numbers were obtained by
 averaging the results of three runs.
 
-For \kmeans, we fixed the problem input size to 16 million 4 dimensional points
-and 5 centroids, and measured performance as the number of iterations per
-second. Figure~\ref{fig:kmeans-scaling} shows the effect of scaling the number
-of workers for the \apgas and Akka implementations. \TODO come up with
-brilliant insight.
+For \kmeans, we fixed the problem input size to $32$ million $4$-dimensional
+points and $5$ centroids, and measured performance as the number of iterations
+per second. The core computational code (determining the closest centroid for
+each point) is common to the benchmarks. Figure~\ref{fig:kmeans-scaling} shows
+the effect of scaling the number of workers for the \apgas and Akka
+implementations (note the tight scale). The scaling profiles are overall
+similar, with an initial improvement in per-worker throughput, possibly due to
+a better utilization of cache. The performance advantage of the \apgas
+implementation can be explained by how merging of partial results is handled:
+the corresponding two arrays are locked individually, whereas in the Akka
+implementation, the messages carrying the partial results are processed
+sequentially.
 
 \begin{figure}
 \vspace{-0.3cm}
@@ -33,7 +39,9 @@ brilliant insight.
 \end{figure}
 
 For UTS, we measured the rate of traversal of a tree of depth 15, in millions
-of nodes per second. Figure~\ref{fig:uts-scaling} shows \TODO
+of nodes per second. Most of the computational work is hashing, for which the
+code is shared. Figure~\ref{fig:uts-scaling} shows that the scaling profiles
+are very similar for the two implementations. 
 
 \begin{figure}
 \vspace{-0.3cm}

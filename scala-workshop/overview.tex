@@ -73,7 +73,7 @@ purpose, the library defines the \lstinline{PlaceLocal} trait. In an
 application that defines one \lstinline{Worker} object per place, for instance,
 we can write:
 \begin{lstlisting}
-  class Worker($\ldots$) extends PlaceLocal
+  class Worker(...) extends PlaceLocal
 \end{lstlisting}
 Initializing an independent object at each place is achieved using the
 \lstinline{forPlaces} helper:
@@ -84,7 +84,7 @@ At this stage, the variable \lstinline{w} holds a proper instance of
 \lstinline{Worker}. The important property of place-local objects is reflected
 in the following code:
 \begin{lstlisting}
-  asyncAt(p2) { w.work($\ldots$) }
+  asyncAt(p2) { w.work(...) }
 \end{lstlisting}
 When serializing the instance of \lstinline{PlaceLocal} that belongs to the
 closure, the runtime replaces the \lstinline{Worker} object by a named

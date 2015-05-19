@@ -82,15 +82,15 @@ works because the implicit \lstinline{this} captured in the closure has type
 instance unique to the destination place.
 \begin{figure}
 \begin{lstlisting}
-class Worker($\ldots$) extends PlaceLocal {
-  val workList: WorkList $\EQ$ $\ldots$
-  val lifeline: AtomicBoolean $\EQ$ $\ldots$
-  $\ldots$
+class Worker(...) extends PlaceLocal {
+  val workList: WorkList $\EQ$ ...
+  val lifeline: AtomicBoolean $\EQ$ ...
+  ...
   def run() : Unit $\EQ$ {
     synchronized { state $\EQ$ Work }
-    while ($\ldots$) {
+    while (...) {
       /* Work while work is available and/or stealing
-         is successful. */ $\ldots$ }
+         is successful. */ ... }
     synchronized { state $\EQ$ Idle }
     lifelineReq() }
   def lifelineReq() : Unit $\EQ$ {

@@ -36,7 +36,7 @@ class ClusterState extends Serializable {
   val counts $\EQ$ Array.ofDim[Int](K)
 }
 class LocalData(val points: ..., val state: ClusterState) { ... }
-val local: LocalData $\EQ$ GlobalRef.forPlaces(places) { $\ldots$ }
+val local: LocalData $\EQ$ GlobalRef.forPlaces(places) { ... }
 val masterState $\EQ$ new ClusterState()
 val masterRef $\EQ$ SharedRef.make(masterState)
 val currentCentroids $\EQ$ Array.ofDim[Float](K, D)
@@ -51,14 +51,14 @@ while (!converged()) {
         asyncAt(masterRef.home) {
           val masterCentroids $\EQ$ masterRef().centroids
           masterCentroids.synchronized {
-            $\ldots$ /* add elements from pState.centroids */ }
+            ... /* add elements from pState.centroids */ }
           val masterCounts $\EQ$ masterRef().counts
           masterCounts.synchronized {
-            $\ldots$ /* add elements from pState.counts */ }
+            ... /* add elements from pState.counts */ }
         }
       }
   } } }
-  $\ldots$ // normalize centroids by counts
+  ... // normalize centroids by counts
   copyArray(masterState.centroids, currentCentroids)
 }
 \end{lstlisting}
@@ -76,8 +76,8 @@ For contrast, Figure~\ref{fig:kmeansakka} shows the related parts of an
 actor-based implementation of \kmeans clustering using Akka.
 \begin{figure}
 \begin{lstlisting}
-  class Master($\ldots$) extends Actor {
-    val workers: Seq[ActorRef] $\EQ$ $\ldots$
+  class Master(...) extends Actor {
+    val workers: Seq[ActorRef] $\EQ$ ...
     val centroids, newCentroids $\EQ$ Array.ofDim[Float](K, D)
     val newCounts $\EQ$ Array.ofDim[Int](K)
     var received $\EQ$ 0
@@ -87,20 +87,20 @@ actor-based implementation of \kmeans clustering using Akka.
         received $\EQ$ 0
         workers.foreach(_ ! Update(centroids)) }
       case Updated(workerCentroids, workerCounts) $\RA$
-        $\ldots$ /* add elements from pState.centroids */ }
-        $\ldots$ /* add elements from pState.counts */ }
+        ... /* add elements from pState.centroids */ }
+        ... /* add elements from pState.counts */ }
         received $\PEQ$ 1
         if(received $\EQEQ$ numWorkers) {
-          $\ldots$ // normalize newCentroids by newCounts
+          ... // normalize newCentroids by newCounts
           copyArray(newCentroids, centroids)
           self ! Run }
   } }
-  class Worker($\ldots$) extends Actor {
-    val points $\EQ$ $\ldots$
-    val localCentroids $\EQ$ $\ldots$; val localCounts $\EQ$ $\ldots$
+  class Worker(...) extends Actor {
+    val points $\EQ$ ...
+    val localCentroids $\EQ$ ...; val localCounts $\EQ$ ...
     override def receive $\EQ$ {
       case Update(centroids) $\RA$
-        compute(centroids, this, $\ldots$)
+        compute(centroids, this, ...)
         sender ! Updated(localCentroids, localCounts)
   } }
 \end{lstlisting}

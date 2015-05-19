@@ -34,7 +34,7 @@ The \lstinline{finish} construct detects termination: an invocation of
 of \lstinline{asyncAt} have completed. The set of \lstinline{asyncAt} invocations
 that are controlled comprises all recursive invocations, including all remote
 ones. This makes \lstinline{finish} a powerful contribution of \apgas.
-There is an implicit \lstinline{finish} surrounding the main method of the program (which is itself implicitly a task).
+% There is an implicit \lstinline{finish} surrounding the main method of the program (which is itself implicitly a task).
 % If an asynchronous task must not be ignored by the enclosing \lstinline{finish}, we spawn it with \lstinline{uncountedAsyncAt}.
 
 Because spawning local tasks is so common, the library defines an optimized version of

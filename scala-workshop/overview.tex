@@ -99,7 +99,7 @@ comes from the fact that a \lstinline{GlobalRef} is available globally,
 even though it points to place-local objects.}
 We use its method \lstinline{apply(): T} to access the
 wrapped value local to each place.
-A related class, \lstinline{SharedRef}, provides a global reference to a single object, and may only be dereferenced at the home place of that object.
+A related class, \lstinline{SharedRef[T]}, provides a global reference to a single object, and may only be dereferenced at the home place of that object.
 %TODO Olivier - we chose to separate GlobalRef (place-local storage) from SharedRef (reference to single object) - any objections? JM
 
 \paragraph{Handling failures.} Remote invocations can fail, for instance if the
@@ -124,4 +124,4 @@ benchmarks are beyond the scope of this paper.
 % Async at: active messages: get executed "immediately", actor messages handled one-by-one.
 % 
 In the following sections, we highlight some \apgas patterns in two concrete
-benchmarks, and provide contrast with the familiar actor paradigm as expressed in Akka.
+benchmarks, and provide contrast with the actor paradigm as expressed in Akka.

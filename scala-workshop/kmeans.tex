@@ -67,12 +67,10 @@ while (!converged()) {
 An aspect of the code that can be harder to grasp is the movement of data: the
 value of \lstinline{currentCentroids} is sent from the master to a worker by letting the variable be captured in the closure passed to \lstinline{asyncAt}.
 Note that while \lstinline{local} is a
-\lstinline{GlobalRef} and is therefore never serialized implicitly, here we use
+\lstinline{GlobalRef} and is therefore never serialized implicitly, we use
 \lstinline{apply} to dereference it and thus pass a copy of the data of type
 \lstinline{LocalData} to the master process in the nested \lstinline{asyncAt}.
-Finally, note that the portion of
-the code that adds the contribution of a worker to the master values must be
-protected for data races.
+Finally, note that the code that adds the contribution of a worker to the master values is synchronized to avoid data races.
 
 For contrast, Figure~\ref{fig:kmeansakka} shows the related parts of an
 actor-based implementation of \kmeans clustering using Akka.

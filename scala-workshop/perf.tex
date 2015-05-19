@@ -4,7 +4,7 @@ We ran our \apgas and Akka implementations of \kmeans and UTS on a 48 core
 machine, measuring the performance of configurations with 1, 2, 4, 8, 16, and
 32 workers. For the \apgas programs, the number of workers corresponds to the
 number of places. For the Akka programs, $n$ workers correspond to $n+1$
-actors: for both benchmarks we used the idiom of a master actor supervising the
+actors: both benchmarks use the idiom of a master actor supervising the
 workers and detecting termination, as described in Sections~\ref{sec:kmeans}
 and~\ref{sec:uts}. Because we are primarily interested in the scaling profile of
 our applications, we normalize the performance by the number of workers.
@@ -23,8 +23,8 @@ each point) is common to the benchmarks. Figure~\ref{fig:kmeans-scaling} shows
 the effect of scaling the number of workers for the \apgas and Akka
 implementations (note the tight scale). The scaling profiles are overall
 similar, with an initial improvement in per-worker throughput, possibly due to
-a better utilization of cache. The performance advantage of the \apgas
-implementation can be explained by how merging of partial results is handled:
+increased available memory bandwidth when using multiple sockets.
+The performance advantage of the \apgas implementation can be explained by how merging of partial results is handled:
 the corresponding two arrays are locked individually, whereas in the Akka
 implementation, the messages carrying the partial results are processed
 sequentially.
@@ -35,7 +35,7 @@ sequentially.
 \begingroup\graphicspath{{figures/}}\input{figures/kmeans}\endgroup
 \vspace{-0.2cm}
 \caption{Scaling of \kmeans implementations.}
-\label{fig:uts-scaling}
+\label{fig:kmeans-scaling}
 \end{figure}
 
 For UTS, we measured the rate of traversal of a tree of depth 15, in millions

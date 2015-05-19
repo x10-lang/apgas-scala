@@ -35,25 +35,25 @@ class ClusterState extends Serializable {
   val centroids $\EQ$ Array.ofDim[Float](K, D)
   val counts $\EQ$ Array.ofDim[Int](K)
 }
-
-val local $\EQ$ GlobalRef.forPlaces(places) { $\ldots$ }
-val masterState $\EQ$ new ClusterState();
+class LocalData(val points: ..., val state: ClusterState) { ... }
+val local: LocalData $\EQ$ GlobalRef.forPlaces(places) { $\ldots$ }
+val masterState $\EQ$ new ClusterState()
 val masterRef $\EQ$ SharedRef.make(masterState)
 val currentCentroids $\EQ$ Array.ofDim[Float](K, D)
-
 while (!converged()) {
   finish {
     reset(newCentroids); reset(newCounts)
     for (p $\lA$ places) {
       asyncAt(place) {
-        val pState = local();
-        compute(currentCentroids, pState, $\ldots$)
+        val pState = local().state
+        val points = local().points
+        compute(currentCentroids, points, pState)
         asyncAt(masterRef.home) {
-          val newCentroids $\EQ$ masterRef().centroids
-          newCentroids.synchronized {
+          val masterCentroids $\EQ$ masterRef().centroids
+          masterCentroids.synchronized {
             $\ldots$ /* add elements from pState.centroids */ }
-          val newCounts $\EQ$ masterRef().counts;
-          newCounts.synchronized {
+          val masterCounts $\EQ$ masterRef().counts
+          masterCounts.synchronized {
             $\ldots$ /* add elements from pState.counts */ }
         }
       }

@@ -36,7 +36,7 @@ class ClusterState extends Serializable {
   val counts $\EQ$ Array.ofDim[Int](K)
 }
 class LocalData(val points: ..., val state: ClusterState) { ... }
-val local: LocalData $\EQ$ GlobalRef.forPlaces(places) { ... }
+val local $\EQ$ GlobalRef.forPlaces(places) { ... }
 val masterState $\EQ$ new ClusterState()
 val masterRef $\EQ$ SharedRef.make(masterState)
 val currentCentroids $\EQ$ Array.ofDim[Float](K, D)

@@ -24,16 +24,16 @@ the effect of scaling the number of workers for the \apgas and Akka
 implementations (note the tight scale). The scaling profiles are overall
 similar, with an initial improvement in per-worker throughput, possibly due to
 increased available memory bandwidth when using multiple sockets.
-The performance advantage of the \apgas implementation can be explained by how merging of partial results is handled:
-the corresponding two arrays are locked individually, whereas in the Akka
-implementation, the messages carrying the partial results are processed
-sequentially.
+% The performance advantage of the \apgas implementation can be explained by how merging of partial results is handled:
+% the corresponding two arrays are locked individually, whereas in the Akka
+% implementation, the messages carrying the partial results are processed
+% sequentially.
 
 \begin{figure}
-\vspace{-0.3cm}
+%\vspace{-0.3cm}
 \hspace{-0.2cm}
 \begingroup\graphicspath{{figures/}}\input{figures/kmeans}\endgroup
-\vspace{-0.2cm}
+%\vspace{-0.2cm}
 \caption{Scaling of \kmeans implementations.}
 \label{fig:kmeans-scaling}
 \end{figure}
@@ -44,10 +44,10 @@ which the code is shared. Figure~\ref{fig:uts-scaling} shows that the scaling
 profiles are similar for the two implementations. 
 
 \begin{figure}
-\vspace{-0.3cm}
+%\vspace{-0.3cm}
 \hspace{-0.2cm}
 \begingroup\graphicspath{{figures/}}\input{figures/uts}\endgroup
-\vspace{-0.2cm}
+%\vspace{-0.2cm}
 \caption{Scaling of UTS implementations.}
 \label{fig:uts-scaling}
 \end{figure}

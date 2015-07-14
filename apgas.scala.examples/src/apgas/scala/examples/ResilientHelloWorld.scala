@@ -30,10 +30,6 @@ object ResilientHelloWorld {
     // PS: I need this because java is not the default on my system..
     System.setProperty(Configuration.APGAS_JAVA, "java8")
 
-    // PS: An alternate way would be to invoke 'scala' instead of Java.
-    //System.setProperty("java.class.path", System.getProperty("java.class.path", "") + ":" +
-    //    "/home/psuter/software/scala/current/lib/scala-library.jar")
-
     apgas {
       var i: Int = 0
       while (true) {

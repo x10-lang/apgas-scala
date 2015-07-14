@@ -192,7 +192,6 @@ object ResilientKMeans {
             // regenerate or redistribute points
             for (place <- oldPlaces) {
               if (survivorList.contains(place)) {
-                //println(place + " survived. Regenerating points.")
                 asyncAt(place) {
                   val pointsHere = points()
                   synchronized { pointsHere.++=(pointsForPlace(here.id)) }

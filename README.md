@@ -10,9 +10,8 @@ Things work better if you use Eclipse. Somehow, the classpaths don't get set up
 in the same way when using sbt or starting from a shell.
 
 - Eclipse >= 4.4 ("Luna")
-- The `apgas` and `apgas.impl` projects from the [X10 SVN
-  repository](http://sourceforge.net/p/x10/code/HEAD/tree/trunk/).
-- Hazelcast (see `INSTALL.txt` in `apgas.impl`).
+- The `apgas` project from the [X10 Git repository](https://github.com/x10-lang/x10).
+- Hazelcast (will be installed in apgas/lib by running [Ant](http://ant.apache.org) in the apgas project).
 - The [Scala IDE](http://scala-ide.org/download/current.html) Eclipse plugins.
 
 Constructs
@@ -48,7 +47,7 @@ Projects that only use `async` and `finish` (i.e. no distribution) will work jus
 
 Licensing Terms
 ---------------
-(C) Copyright IBM Corporation 2015.
+(C) Copyright IBM Corporation 2015-2016.
 
 This program is controlled by the Eclipse Public Licence v1.0.
 You may obtain a copy of the License at

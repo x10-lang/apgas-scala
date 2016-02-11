@@ -53,7 +53,7 @@ package object scala {
   }
 
   def asyncAt(place : Place)(body : =>Unit) : Unit = {
-    Constructs.asyncat(place, new SerializableJob() {
+    Constructs.asyncAt(place, new SerializableJob() {
       override def run() : Unit = {
         body
       }
@@ -61,7 +61,7 @@ package object scala {
   }
   
   def uncountedAsyncAt(place : Place)(body : =>Unit) : Unit = {
-    Constructs.uncountedasyncat(place, new SerializableJob() {
+    Constructs.uncountedAsyncAt(place, new SerializableJob() {
       override def run() : Unit = {
         body
       }

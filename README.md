@@ -13,6 +13,7 @@ in the same way when using sbt or starting from a shell.
 - The `apgas` project from the [X10 Git repository](https://github.com/x10-lang/x10).
 - Hazelcast (will be installed in apgas/lib by running [Ant](http://ant.apache.org) in the apgas project).
 - The [Scala IDE](http://scala-ide.org/download/current.html) Eclipse plugins.
+- (Optional for Akka examples) [Akka](http://akka.io/) 2.4.1
 
 Constructs
 ---

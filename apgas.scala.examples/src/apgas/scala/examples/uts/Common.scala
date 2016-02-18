@@ -14,9 +14,6 @@ package apgas.scala.examples.uts
 object Common {
   def setup(numPlaces : Int = 1) : Unit = {
     import apgas.Configuration
-    // PS: I put my machine-specific config here...
-    // I need this because java is not the default on my system..
-    System.setProperty(Configuration.APGAS_JAVA, "java8")
     if (System.getProperty(Configuration.APGAS_PLACES) == null) {
       System.setProperty(Configuration.APGAS_PLACES, "" + numPlaces)
     }

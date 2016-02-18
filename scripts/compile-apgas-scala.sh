@@ -2,6 +2,6 @@
 
 source common.sh
 
-mkdir -p bin
+mkdir -p ${APGAS_SCALA_HOME}/bin
 
-${SCALAC} -d bin -classpath "bin:${AKKA_HOME}/lib/akka/*" `find ${APGAS_SCALA_COMMON_HOME} -name "*.scala" -type f`  
+cd ${APGAS_SCALA_HOME} && ${SCALAC} -d bin -classpath "bin:${AKKA_HOME}/lib/akka/*:${APGAS_HOME}/lib/apgas.jar" `find src -name "*.scala" -type f`

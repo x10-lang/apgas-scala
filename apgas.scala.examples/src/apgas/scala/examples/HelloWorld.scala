@@ -20,9 +20,6 @@ object HelloWorld {
       System.setProperty(Configuration.APGAS_PLACES, "4")
     }
 
-    // PS: I need this because java is not the default on my system..
-    System.setProperty(Configuration.APGAS_JAVA, "java8")
-      
     apgas {
       finish {
         for(place <- places) {

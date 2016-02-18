@@ -2,10 +2,9 @@
 
 source common.sh
 
-mkdir -p bin
+mkdir -p ${APGAS_HOME}/bin
 
-${JAVAC} -classpath ${APGAS_IMPL_HOME}/lib/hazelcast-3.4.jar:${APGAS_HOME}/src:${APGAS_IMPL_HOME}/src:${APGAS_EXAMPLES_HOME}/src \
+${JAVAC} -classpath ${APGAS_HOME}/lib/hazelcast-3.4.jar:${APGAS_HOME}/src:${APGAS_EXAMPLES_HOME}/src \
     ${APGAS_HOME}/src/apgas/*.java \
     ${APGAS_HOME}/src/apgas/util/*.java \
-    ${APGAS_IMPL_HOME}/src/apgas/impl/GlobalRuntimeImpl.java \
-    -d bin
+    -d ${APGAS_HOME}/bin

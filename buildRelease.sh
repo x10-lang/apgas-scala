@@ -7,4 +7,4 @@ if [[ -z "$APGAS_VERSION" ]]; then
     exit 1
 fi
 
-zip -x *.git* -r apgas-scala-$APGAS_VERSION.zip apgas.scala apgas.scala.examples README.md
+zip -x *.git* -r apgas-scala-$APGAS_VERSION.zip apgas.scala apgas.scala.examples scripts README.md
